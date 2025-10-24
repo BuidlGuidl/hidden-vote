@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import Papa from "papaparse";
-import { createPublicClient, http } from "viem";
-import { mainnet } from "viem/chains";
 import { normalize } from "viem/ens";
-import { useAccount } from "wagmi";
+import { useAccount, useConfig } from "wagmi";
+import { getEnsAddress, getEnsName } from "wagmi/actions";
 import { DocumentTextIcon, PlusIcon, TrashIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import { notification } from "~~/utils/scaffold-eth";
@@ -22,6 +21,7 @@ type AddVotersModalProps = {
 
 export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
   const { address: connectedAddress } = useAccount();
+  const config = useConfig();
   const [voters, setVoters] = useState<VoterEntry[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bulkAddresses, setBulkAddresses] = useState("");
@@ -63,23 +63,27 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
 
   const resolveENSName = async (ensName: string): Promise<string | null> => {
     try {
-      // Create a mainnet public client for ENS resolution
-      // ENS is only available on Ethereum mainnet
-      const alchemyApiKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
-      const rpcUrl = alchemyApiKey
-        ? `https://eth-mainnet.g.alchemy.com/v2/${alchemyApiKey}`
-        : "https://eth.llamarpc.com";
-
-      const mainnetClient = createPublicClient({
-        chain: mainnet,
-        transport: http(rpcUrl),
-      });
-
       const normalizedName = normalize(ensName);
-      const address = await mainnetClient.getEnsAddress({ name: normalizedName });
+      const address = await getEnsAddress(config, {
+        name: normalizedName,
+        chainId: 1, // Mainnet for ENS
+      });
       return address;
     } catch (error) {
       console.error(`Failed to resolve ENS name ${ensName}:`, error);
+      return null;
+    }
+  };
+
+  const reverseResolveENS = async (address: string): Promise<string | null> => {
+    try {
+      const ensName = await getEnsName(config, {
+        address: address as `0x${string}`,
+        chainId: 1, // Mainnet for ENS
+      });
+      return ensName;
+    } catch (error) {
+      console.error(`Failed to reverse resolve address ${address}:`, error);
       return null;
     }
   };
@@ -122,7 +126,8 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
       }
     }
 
-    // Second pass: validate and add addresses
+    // Second pass: validate addresses
+    const validAddresses: Array<{ address: string; index: number }> = [];
     lines.forEach((line, index) => {
       if (!line) return; // Skip empty or failed resolutions
 
@@ -140,7 +145,25 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
         return;
       }
 
-      // Add voter with ENS name if it was resolved
+      validAddresses.push({ address, index });
+    });
+
+    // Third pass: perform reverse ENS lookups for addresses that weren't originally ENS names
+    const addressesToLookup = validAddresses.filter(({ index }) => !ensNameMap.has(index));
+
+    if (addressesToLookup.length > 0) {
+      notification.info(`Looking up ENS names for ${addressesToLookup.length} address(es)...`);
+
+      for (const { address, index } of addressesToLookup) {
+        const reversedENS = await reverseResolveENS(address);
+        if (reversedENS) {
+          ensNameMap.set(index, reversedENS);
+        }
+      }
+    }
+
+    // Fourth pass: create voter entries with resolved ENS names
+    validAddresses.forEach(({ address, index }) => {
       newVoters.push({
         address,
         status: defaultStatus,
@@ -182,19 +205,20 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
             if (input) itemsToProcess.push(input);
           });
 
-          // Resolve ENS names
+          // Resolve ENS names and addresses
           for (let i = 0; i < itemsToProcess.length; i++) {
             const originalInput = itemsToProcess[i];
             let address = originalInput;
             let ensName: string | undefined;
 
-            if (isENSName(address)) {
-              const resolved = await resolveENSName(address);
+            if (isENSName(originalInput)) {
+              // Forward resolution: ENS name to address
+              const resolved = await resolveENSName(originalInput);
               if (resolved) {
-                ensName = address; // Store original ENS name
+                ensName = originalInput; // Store original ENS name
                 address = resolved;
               } else {
-                errors.push(`Row ${i + 1}: Failed to resolve ENS name ${address}`);
+                errors.push(`Row ${i + 1}: Failed to resolve ENS name ${originalInput}`);
                 continue;
               }
             }
@@ -202,6 +226,14 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
             if (!validateEthAddress(address)) {
               errors.push(`Row ${i + 1}: Invalid address`);
               continue;
+            }
+
+            // Reverse resolution: address to ENS name (if not already resolved from ENS)
+            if (!ensName) {
+              const reversedENS = await reverseResolveENS(address);
+              if (reversedENS) {
+                ensName = reversedENS;
+              }
             }
 
             if (!voters.some(v => v.address.toLowerCase() === address.toLowerCase())) {
@@ -238,18 +270,31 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
             let address = originalInput;
             let ensName: string | undefined;
 
-            if (isENSName(address)) {
-              const resolved = await resolveENSName(address);
+            if (isENSName(originalInput)) {
+              // Forward resolution: ENS name to address
+              const resolved = await resolveENSName(originalInput);
               if (resolved) {
-                ensName = address; // Store original ENS name
+                ensName = originalInput; // Store original ENS name
                 address = resolved;
               } else {
-                errors.push(`Failed to resolve ENS name ${address}`);
+                errors.push(`Failed to resolve ENS name ${originalInput}`);
                 continue;
               }
             }
 
-            if (validateEthAddress(address) && !voters.some(v => v.address.toLowerCase() === address.toLowerCase())) {
+            if (!validateEthAddress(address)) {
+              continue;
+            }
+
+            // Reverse resolution: address to ENS name (if not already resolved from ENS)
+            if (!ensName) {
+              const reversedENS = await reverseResolveENS(address);
+              if (reversedENS) {
+                ensName = reversedENS;
+              }
+            }
+
+            if (!voters.some(v => v.address.toLowerCase() === address.toLowerCase())) {
               newVoters.push({ address, status: defaultStatus, ensName });
             }
           }

@@ -145,6 +145,13 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
         return;
       }
 
+      // Check if address already exists in the current import batch
+      const duplicateInBatch = validAddresses.some(v => v.address.toLowerCase() === address.toLowerCase());
+      if (duplicateInBatch) {
+        errors.push(`Line ${index + 1}: Duplicate address ${address} in import`);
+        return;
+      }
+
       validAddresses.push({ address, index });
     });
 
@@ -236,8 +243,14 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
               }
             }
 
-            if (!voters.some(v => v.address.toLowerCase() === address.toLowerCase())) {
+            // Check for duplicates in existing voters and current import batch
+            const existsInVoters = voters.some(v => v.address.toLowerCase() === address.toLowerCase());
+            const existsInBatch = newVoters.some(v => v.address.toLowerCase() === address.toLowerCase());
+
+            if (!existsInVoters && !existsInBatch) {
               newVoters.push({ address, status: defaultStatus, ensName });
+            } else if (existsInBatch) {
+              errors.push(`Row ${i + 1}: Duplicate address in file`);
             }
           }
 
@@ -294,8 +307,14 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
               }
             }
 
-            if (!voters.some(v => v.address.toLowerCase() === address.toLowerCase())) {
+            // Check for duplicates in existing voters and current import batch
+            const existsInVoters = voters.some(v => v.address.toLowerCase() === address.toLowerCase());
+            const existsInBatch = newVoters.some(v => v.address.toLowerCase() === address.toLowerCase());
+
+            if (!existsInVoters && !existsInBatch) {
               newVoters.push({ address, status: defaultStatus, ensName });
+            } else if (existsInBatch) {
+              errors.push(`Duplicate address in file`);
             }
           }
 

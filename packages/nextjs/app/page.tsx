@@ -16,11 +16,10 @@ const Home: NextPage = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div className="flex-1 space-y-4">
               <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-4 leading-tight pb-2">
-                Privacy Voting
+                Hidden Vote
               </h1>
               <p className="text-xl opacity-70 max-w-2xl">
-                Create private voting sessions with registration periods. Participants register, vote privately, and
-                maintain full transparency.
+                Host private voting sessions with registration periods. Votes stay private, results stay transparent.
               </p>
             </div>
             <div className="flex-shrink-0">

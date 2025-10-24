@@ -27,7 +27,6 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
   const [bulkAddresses, setBulkAddresses] = useState("");
   const [defaultStatus, setDefaultStatus] = useState(true);
 
-  // Check if the connected user is the owner of the contract
   const { data: contractOwner } = useScaffoldReadContract({
     contractName: "Voting",
     functionName: "owner",
@@ -39,7 +38,6 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
     address: contractAddress,
   });
 
-  // Only show the modal if the connected user is the owner
   const isOwner = connectedAddress && contractOwner && connectedAddress.toLowerCase() === contractOwner.toLowerCase();
 
   const removeVoterEntry = (index: number) => {
@@ -57,7 +55,6 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
   };
 
   const isENSName = (input: string): boolean => {
-    // Check if it's an ENS name (ends with .eth or other ENS TLDs)
     return /^[\w-]+(\.[\w-]+)*\.(eth|xyz|luxe|kred|art|club)$/i.test(input);
   };
 
@@ -66,7 +63,7 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
       const normalizedName = normalize(ensName);
       const address = await getEnsAddress(config, {
         name: normalizedName,
-        chainId: 1, // Mainnet for ENS
+        chainId: 1,
       });
       return address;
     } catch (error) {
@@ -79,7 +76,7 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
     try {
       const ensName = await getEnsName(config, {
         address: address as `0x${string}`,
-        chainId: 1, // Mainnet for ENS
+        chainId: 1,
       });
       return ensName;
     } catch (error) {
@@ -100,36 +97,30 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
       .filter(Boolean);
     const newVoters: VoterEntry[] = [];
     const errors: string[] = [];
-    const ensNameMap: Map<number, string> = new Map(); // Track original ENS names by index
+    const ensNameMap: Map<number, string> = new Map();
 
-    // First pass: identify ENS names that need resolution
     lines.forEach((line, index) => {
       if (isENSName(line)) {
-        ensNameMap.set(index, line); // Store the original ENS name
+        ensNameMap.set(index, line);
       }
     });
 
-    // Resolve ENS names if any
     if (ensNameMap.size > 0) {
-      notification.info(`Resolving ${ensNameMap.size} ENS name(s)...`);
-
       for (const [index, ensName] of ensNameMap.entries()) {
         const resolvedAddress = await resolveENSName(ensName);
         if (resolvedAddress) {
           lines[index] = resolvedAddress;
-          notification.success(`Resolved ${ensName} → ${resolvedAddress.slice(0, 6)}...${resolvedAddress.slice(-4)}`);
         } else {
           errors.push(`Line ${index + 1}: Failed to resolve ENS name ${ensName}`);
-          lines[index] = ""; // Mark as invalid
-          ensNameMap.delete(index); // Remove failed resolution
+          lines[index] = "";
+          ensNameMap.delete(index);
         }
       }
     }
 
-    // Second pass: validate addresses
     const validAddresses: Array<{ address: string; index: number }> = [];
     lines.forEach((line, index) => {
-      if (!line) return; // Skip empty or failed resolutions
+      if (!line) return;
 
       const address = line.trim();
 
@@ -138,14 +129,12 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
         return;
       }
 
-      // Check if address already exists in current voters list
       const exists = voters.some(v => v.address.toLowerCase() === address.toLowerCase());
       if (exists) {
         errors.push(`Line ${index + 1}: Address ${address} already in list`);
         return;
       }
 
-      // Check if address already exists in the current import batch
       const duplicateInBatch = validAddresses.some(v => v.address.toLowerCase() === address.toLowerCase());
       if (duplicateInBatch) {
         errors.push(`Line ${index + 1}: Duplicate address ${address} in import`);
@@ -155,12 +144,9 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
       validAddresses.push({ address, index });
     });
 
-    // Third pass: perform reverse ENS lookups for addresses that weren't originally ENS names
     const addressesToLookup = validAddresses.filter(({ index }) => !ensNameMap.has(index));
 
     if (addressesToLookup.length > 0) {
-      notification.info(`Looking up ENS names for ${addressesToLookup.length} address(es)...`);
-
       for (const { address, index } of addressesToLookup) {
         const reversedENS = await reverseResolveENS(address);
         if (reversedENS) {
@@ -169,7 +155,6 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
       }
     }
 
-    // Fourth pass: create voter entries with resolved ENS names
     validAddresses.forEach(({ address, index }) => {
       newVoters.push({
         address,
@@ -185,13 +170,11 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
     }
 
     if (newVoters.length === 0) {
-      notification.error("No valid addresses to import");
       return;
     }
 
     setVoters([...voters, ...newVoters]);
     setBulkAddresses("");
-    notification.success(`Successfully added ${newVoters.length} address${newVoters.length === 1 ? "" : "es"}`);
   };
 
   const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -212,17 +195,15 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
             if (input) itemsToProcess.push(input);
           });
 
-          // Resolve ENS names and addresses
           for (let i = 0; i < itemsToProcess.length; i++) {
             const originalInput = itemsToProcess[i];
             let address = originalInput;
             let ensName: string | undefined;
 
             if (isENSName(originalInput)) {
-              // Forward resolution: ENS name to address
               const resolved = await resolveENSName(originalInput);
               if (resolved) {
-                ensName = originalInput; // Store original ENS name
+                ensName = originalInput;
                 address = resolved;
               } else {
                 errors.push(`Row ${i + 1}: Failed to resolve ENS name ${originalInput}`);
@@ -235,7 +216,6 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
               continue;
             }
 
-            // Reverse resolution: address to ENS name (if not already resolved from ENS)
             if (!ensName) {
               const reversedENS = await reverseResolveENS(address);
               if (reversedENS) {
@@ -243,7 +223,6 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
               }
             }
 
-            // Check for duplicates in existing voters and current import batch
             const existsInVoters = voters.some(v => v.address.toLowerCase() === address.toLowerCase());
             const existsInBatch = newVoters.some(v => v.address.toLowerCase() === address.toLowerCase());
 
@@ -256,7 +235,6 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
 
           if (newVoters.length > 0) {
             setVoters([...voters, ...newVoters]);
-            notification.success(`Imported ${newVoters.length} addresses from CSV`);
           }
 
           if (errors.length > 0) {
@@ -284,10 +262,9 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
             let ensName: string | undefined;
 
             if (isENSName(originalInput)) {
-              // Forward resolution: ENS name to address
               const resolved = await resolveENSName(originalInput);
               if (resolved) {
-                ensName = originalInput; // Store original ENS name
+                ensName = originalInput;
                 address = resolved;
               } else {
                 errors.push(`Failed to resolve ENS name ${originalInput}`);
@@ -299,7 +276,6 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
               continue;
             }
 
-            // Reverse resolution: address to ENS name (if not already resolved from ENS)
             if (!ensName) {
               const reversedENS = await reverseResolveENS(address);
               if (reversedENS) {
@@ -307,7 +283,6 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
               }
             }
 
-            // Check for duplicates in existing voters and current import batch
             const existsInVoters = voters.some(v => v.address.toLowerCase() === address.toLowerCase());
             const existsInBatch = newVoters.some(v => v.address.toLowerCase() === address.toLowerCase());
 
@@ -320,7 +295,6 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
 
           if (newVoters.length > 0) {
             setVoters([...voters, ...newVoters]);
-            notification.success(`Imported ${newVoters.length} addresses from JSON`);
           }
 
           if (errors.length > 0) {
@@ -335,7 +309,6 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
       reader.readAsText(file);
     }
 
-    // Reset file input
     e.target.value = "";
   };
 
@@ -343,7 +316,6 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
     try {
       setIsSubmitting(true);
 
-      // Filter out empty addresses
       const validVoters = voters.filter(voter => voter.address.trim() !== "");
 
       if (validVoters.length === 0) {
@@ -359,11 +331,9 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
         args: [addresses, statuses],
       });
 
-      // Reset form
       setVoters([]);
       setBulkAddresses("");
 
-      // Close modal
       const modal = document.getElementById("add-voters-modal") as HTMLInputElement;
       if (modal) modal.checked = false;
     } catch (error) {
@@ -373,7 +343,6 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
     }
   };
 
-  // Don't render anything if user is not the owner
   if (!isOwner) {
     return null;
   }
@@ -387,7 +356,6 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
       <input type="checkbox" id="add-voters-modal" className="modal-toggle" />
       <label htmlFor="add-voters-modal" className="modal cursor-pointer">
         <label className="modal-box relative max-w-2xl">
-          {/* dummy input to capture event onclick on modal box */}
           <input className="h-0 w-0 absolute top-0 left-0" />
           <h3 className="text-xl font-bold mb-3">Add Voters</h3>
           <label htmlFor="add-voters-modal" className="btn btn-ghost btn-sm btn-circle absolute right-3 top-3">
@@ -399,7 +367,6 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
               Add addresses that are allowed to vote. Supports Ethereum addresses and ENS names (like phipsae.eth).
             </p>
 
-            {/* Default Status Selector */}
             <div className="flex items-center justify-between p-3 bg-base-200 rounded-lg">
               <span className="text-sm font-medium">Default status for addresses:</span>
               <div className="flex items-center gap-3">
@@ -426,7 +393,6 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
               </div>
             </div>
 
-            {/* Paste Addresses Textarea */}
             <div>
               <label className="block text-sm font-medium mb-2">Paste voter addresses or ENS names</label>
               <textarea
@@ -441,7 +407,6 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
               </p>
             </div>
 
-            {/* Import Buttons */}
             <div className="flex gap-2">
               <button onClick={handleBulkImport} className="btn btn-sm btn-primary gap-2">
                 <PlusIcon className="w-4 h-4" />
@@ -454,7 +419,6 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
               </label>
             </div>
 
-            {/* Display Current Voters List */}
             {voters.length > 0 && (
               <div className="border border-base-300 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-3">
@@ -488,7 +452,6 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
               </div>
             )}
 
-            {/* Submit Buttons */}
             <div className="flex justify-between items-center pt-4 border-t border-base-300">
               <label htmlFor="add-voters-modal" className="btn btn-ghost btn-sm">
                 Cancel

@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import Papa from "papaparse";
+import { createPublicClient, http } from "viem";
+import { mainnet } from "viem/chains";
+import { normalize } from "viem/ens";
 import { useAccount } from "wagmi";
 import { DocumentTextIcon, PlusIcon, TrashIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
@@ -10,6 +13,7 @@ import { notification } from "~~/utils/scaffold-eth";
 type VoterEntry = {
   address: string;
   status: boolean;
+  ensName?: string;
 };
 
 type AddVotersModalProps = {
@@ -52,7 +56,35 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
     return /^0x[a-fA-F0-9]{40}$/.test(address);
   };
 
-  const handleBulkImport = () => {
+  const isENSName = (input: string): boolean => {
+    // Check if it's an ENS name (ends with .eth or other ENS TLDs)
+    return /^[\w-]+(\.[\w-]+)*\.(eth|xyz|luxe|kred|art|club)$/i.test(input);
+  };
+
+  const resolveENSName = async (ensName: string): Promise<string | null> => {
+    try {
+      // Create a mainnet public client for ENS resolution
+      // ENS is only available on Ethereum mainnet
+      const alchemyApiKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
+      const rpcUrl = alchemyApiKey
+        ? `https://eth-mainnet.g.alchemy.com/v2/${alchemyApiKey}`
+        : "https://eth.llamarpc.com";
+
+      const mainnetClient = createPublicClient({
+        chain: mainnet,
+        transport: http(rpcUrl),
+      });
+
+      const normalizedName = normalize(ensName);
+      const address = await mainnetClient.getEnsAddress({ name: normalizedName });
+      return address;
+    } catch (error) {
+      console.error(`Failed to resolve ENS name ${ensName}:`, error);
+      return null;
+    }
+  };
+
+  const handleBulkImport = async () => {
     if (!bulkAddresses.trim()) {
       notification.error("Please enter addresses to import");
       return;
@@ -64,8 +96,36 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
       .filter(Boolean);
     const newVoters: VoterEntry[] = [];
     const errors: string[] = [];
+    const ensNameMap: Map<number, string> = new Map(); // Track original ENS names by index
 
+    // First pass: identify ENS names that need resolution
     lines.forEach((line, index) => {
+      if (isENSName(line)) {
+        ensNameMap.set(index, line); // Store the original ENS name
+      }
+    });
+
+    // Resolve ENS names if any
+    if (ensNameMap.size > 0) {
+      notification.info(`Resolving ${ensNameMap.size} ENS name(s)...`);
+
+      for (const [index, ensName] of ensNameMap.entries()) {
+        const resolvedAddress = await resolveENSName(ensName);
+        if (resolvedAddress) {
+          lines[index] = resolvedAddress;
+          notification.success(`Resolved ${ensName} → ${resolvedAddress.slice(0, 6)}...${resolvedAddress.slice(-4)}`);
+        } else {
+          errors.push(`Line ${index + 1}: Failed to resolve ENS name ${ensName}`);
+          lines[index] = ""; // Mark as invalid
+          ensNameMap.delete(index); // Remove failed resolution
+        }
+      }
+    }
+
+    // Second pass: validate and add addresses
+    lines.forEach((line, index) => {
+      if (!line) return; // Skip empty or failed resolutions
+
       const address = line.trim();
 
       if (!validateEthAddress(address)) {
@@ -80,11 +140,18 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
         return;
       }
 
-      newVoters.push({ address, status: defaultStatus });
+      // Add voter with ENS name if it was resolved
+      newVoters.push({
+        address,
+        status: defaultStatus,
+        ensName: ensNameMap.get(index),
+      });
     });
 
     if (errors.length > 0) {
-      notification.error(`Import warnings: ${errors.join(", ")}`);
+      notification.warning(
+        `Import warnings: ${errors.slice(0, 3).join(", ")}${errors.length > 3 ? ` (+${errors.length - 3} more)` : ""}`,
+      );
     }
 
     if (newVoters.length === 0) {
@@ -94,34 +161,53 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
 
     setVoters([...voters, ...newVoters]);
     setBulkAddresses("");
-    notification.success(`Successfully added ${newVoters.length} addresses`);
+    notification.success(`Successfully added ${newVoters.length} address${newVoters.length === 1 ? "" : "es"}`);
   };
 
-  const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (file.type === "text/csv" || file.name.endsWith(".csv")) {
       Papa.parse(file, {
-        complete: (results: Papa.ParseResult<string[]>) => {
+        complete: async (results: Papa.ParseResult<string[]>) => {
           const newVoters: VoterEntry[] = [];
           const errors: string[] = [];
+          const itemsToProcess: string[] = [];
 
           results.data.forEach((row: string[], index: number) => {
             if (index === 0 && row[0]?.toLowerCase().includes("address")) return;
 
-            const address = row[0]?.trim();
-            if (!address) return;
+            const input = row[0]?.trim();
+            if (input) itemsToProcess.push(input);
+          });
+
+          // Resolve ENS names
+          for (let i = 0; i < itemsToProcess.length; i++) {
+            const originalInput = itemsToProcess[i];
+            let address = originalInput;
+            let ensName: string | undefined;
+
+            if (isENSName(address)) {
+              const resolved = await resolveENSName(address);
+              if (resolved) {
+                ensName = address; // Store original ENS name
+                address = resolved;
+              } else {
+                errors.push(`Row ${i + 1}: Failed to resolve ENS name ${address}`);
+                continue;
+              }
+            }
 
             if (!validateEthAddress(address)) {
-              errors.push(`Row ${index + 1}: Invalid address`);
-              return;
+              errors.push(`Row ${i + 1}: Invalid address`);
+              continue;
             }
 
             if (!voters.some(v => v.address.toLowerCase() === address.toLowerCase())) {
-              newVoters.push({ address, status: defaultStatus });
+              newVoters.push({ address, status: defaultStatus, ensName });
             }
-          });
+          }
 
           if (newVoters.length > 0) {
             setVoters([...voters, ...newVoters]);
@@ -129,7 +215,9 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
           }
 
           if (errors.length > 0) {
-            notification.error(errors.join(", "));
+            notification.warning(
+              `Import warnings: ${errors.slice(0, 3).join(", ")}${errors.length > 3 ? ` (+${errors.length - 3} more)` : ""}`,
+            );
           }
         },
         error: () => {
@@ -138,23 +226,43 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
       });
     } else if (file.type === "application/json" || file.name.endsWith(".json")) {
       const reader = new FileReader();
-      reader.onload = e => {
+      reader.onload = async e => {
         try {
           const data = JSON.parse(e.target?.result as string);
           const addressArray = Array.isArray(data) ? data : data.addresses || [];
           const newVoters: VoterEntry[] = [];
+          const errors: string[] = [];
 
-          addressArray.forEach((item: any) => {
-            const address = typeof item === "string" ? item : item.address;
+          for (const item of addressArray) {
+            const originalInput = typeof item === "string" ? item : item.address;
+            let address = originalInput;
+            let ensName: string | undefined;
+
+            if (isENSName(address)) {
+              const resolved = await resolveENSName(address);
+              if (resolved) {
+                ensName = address; // Store original ENS name
+                address = resolved;
+              } else {
+                errors.push(`Failed to resolve ENS name ${address}`);
+                continue;
+              }
+            }
 
             if (validateEthAddress(address) && !voters.some(v => v.address.toLowerCase() === address.toLowerCase())) {
-              newVoters.push({ address, status: defaultStatus });
+              newVoters.push({ address, status: defaultStatus, ensName });
             }
-          });
+          }
 
           if (newVoters.length > 0) {
             setVoters([...voters, ...newVoters]);
             notification.success(`Imported ${newVoters.length} addresses from JSON`);
+          }
+
+          if (errors.length > 0) {
+            notification.warning(
+              `Import warnings: ${errors.slice(0, 3).join(", ")}${errors.length > 3 ? ` (+${errors.length - 3} more)` : ""}`,
+            );
           }
         } catch {
           notification.error("Failed to parse JSON file");
@@ -224,7 +332,7 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
 
           <div className="space-y-4">
             <p className="text-sm opacity-70">
-              Add addresses that are allowed to vote. Paste multiple addresses or import from a file.
+              Add addresses that are allowed to vote. Supports Ethereum addresses and ENS names (like phipsae.eth).
             </p>
 
             {/* Default Status Selector */}
@@ -256,15 +364,17 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
 
             {/* Paste Addresses Textarea */}
             <div>
-              <label className="block text-sm font-medium mb-2">Paste voter addresses</label>
+              <label className="block text-sm font-medium mb-2">Paste voter addresses or ENS names</label>
               <textarea
                 value={bulkAddresses}
                 onChange={e => setBulkAddresses(e.target.value)}
-                placeholder="0xAbc123..., 0xDef456...&#10;0x789Ghi..."
+                placeholder="0xAbc123..., phipsae.eth&#10;0xDef456..., vitalik.eth"
                 rows={5}
                 className="w-full px-4 py-3 border border-base-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all font-mono text-sm"
               />
-              <p className="text-xs opacity-60 mt-1">One address per line, or comma-separated</p>
+              <p className="text-xs opacity-60 mt-1">
+                One address or ENS name per line, or comma-separated. ENS names will be automatically resolved.
+              </p>
             </div>
 
             {/* Import Buttons */}
@@ -293,7 +403,12 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {voters.map((voter, index) => (
                     <div key={index} className="flex items-center gap-2 p-2 bg-base-100 rounded-lg text-sm">
-                      <span className="font-mono text-xs flex-1 truncate">{voter.address}</span>
+                      <div className="flex-1 min-w-0">
+                        {voter.ensName && (
+                          <div className="font-medium text-sm text-primary truncate">{voter.ensName}</div>
+                        )}
+                        <span className="font-mono text-xs opacity-70 truncate block">{voter.address}</span>
+                      </div>
                       <button
                         onClick={() => toggleVoterStatus(index)}
                         className={`badge badge-sm ${voter.status ? "badge-success" : "badge-error"} cursor-pointer hover:opacity-80`}

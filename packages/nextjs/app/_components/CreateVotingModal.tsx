@@ -14,8 +14,8 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
   });
 
   const [question, setQuestion] = useState("");
-  const [duration, setDuration] = useState<string>("30");
-  const [unit, setUnit] = useState<"minutes" | "hours" | "days">("minutes");
+  const [duration, setDuration] = useState<string>("1");
+  const [unit, setUnit] = useState<"minutes" | "hours" | "days">("days");
 
   const durationInSeconds = useMemo(() => {
     const parsed = parseInt(duration, 10);
@@ -63,8 +63,8 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
         gas: 1100000n,
       });
       setQuestion("");
-      setDuration("30");
-      setUnit("minutes");
+      setDuration("1");
+      setUnit("days");
       onClose();
     } catch (error) {
       console.error("Failed to create voting:", error);
@@ -73,8 +73,8 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
 
   const handleClose = () => {
     setQuestion("");
-    setDuration("30");
-    setUnit("minutes");
+    setDuration("1");
+    setUnit("days");
     onClose();
   };
 
@@ -178,7 +178,7 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
               </select>
             </div>
             {formatDuration && (
-              <label className="label">
+              <label className="label mt-2">
                 <span className="label-text-alt text-base-content/60">Voters can register for {formatDuration}</span>
               </label>
             )}

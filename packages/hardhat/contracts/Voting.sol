@@ -12,6 +12,7 @@ contract Voting is Ownable {
     IVerifier public immutable i_verifier;
     string public s_question;
     uint256 public immutable i_registrationDeadline;
+    string[] public s_options;
 
     // so that not 2 times the same commitment can be inserted
     mapping(uint256 => bool) public s_commitments;
@@ -21,18 +22,10 @@ contract Voting is Ownable {
     mapping(address => bool) private s_hasRegistered;
 
     LeanIMTData public s_tree;
-    uint256 public s_yesVotes;
-    uint256 public s_noVotes;
+    mapping(uint256 => uint256) public s_voteCounts; // optionIndex => count
 
     event NewLeaf(uint256 index, uint256 value);
-    event VoteCast(
-        bytes32 indexed nullifierHash,
-        address indexed voter,
-        bool vote,
-        uint256 timestamp,
-        uint256 totalYes,
-        uint256 totalNo
-    );
+    event VoteCast(bytes32 indexed nullifierHash, address indexed voter, uint256 optionIndex, uint256 timestamp);
     event VoterAdded(address indexed voter);
 
     error Voting__CommitmentAlreadyAdded(uint256 commitment);
@@ -42,11 +35,19 @@ contract Voting is Ownable {
     error Voting__VotersLengthMismatch();
     error Voting__RegistrationPeriodNotOver();
     error Voting__RegistrationPeriodOver();
+    error Voting__InvalidOptionCount();
+    error Voting__InvalidOptionIndex();
 
-    constructor(IVerifier _verifier, string memory _question, uint256 _registrationDuration) Ownable(msg.sender) {
+    constructor(IVerifier _verifier, string memory _question, uint256 _registrationDuration, string[] memory _options)
+        Ownable(msg.sender)
+    {
+        if (_options.length < 2 || _options.length > 16) {
+            revert Voting__InvalidOptionCount();
+        }
         i_verifier = _verifier;
         s_question = _question;
         i_registrationDeadline = _registrationDuration + block.timestamp;
+        s_options = _options;
     }
 
     function addVoters(address[] calldata voters, bool[] calldata statuses) public onlyOwner {
@@ -79,7 +80,6 @@ contract Voting is Ownable {
         emit NewLeaf(s_tree.size - 1, _commitment);
     }
 
-    // TODO: change to vote
     function vote(bytes memory _proof, bytes32 _root, bytes32 _nullifierHash, bytes32 _vote, bytes32 _depth) public {
         if (block.timestamp <= i_registrationDeadline) {
             revert Voting__RegistrationPeriodNotOver();
@@ -99,13 +99,14 @@ contract Voting is Ownable {
             revert Voting__InvalidProof();
         }
 
-        if (_vote == bytes32(uint256(1))) {
-            s_yesVotes++;
-        } else {
-            s_noVotes++;
+        uint256 optionIndex = uint256(_vote);
+        if (optionIndex >= s_options.length) {
+            revert Voting__InvalidOptionIndex();
         }
 
-        emit VoteCast(_nullifierHash, msg.sender, _vote == bytes32(uint256(1)), block.timestamp, s_yesVotes, s_noVotes);
+        s_voteCounts[optionIndex]++;
+
+        emit VoteCast(_nullifierHash, msg.sender, optionIndex, block.timestamp);
     }
 
     //////////////
@@ -160,14 +161,24 @@ contract Voting is Ownable {
     function getVotingStats()
         public
         view
-        returns (
-            address contractOwner,
-            string memory question,
-            uint256 totalYesVotes,
-            uint256 totalNoVotes,
-            uint256 registrationDeadline
-        )
+        returns (address contractOwner, string memory question, string[] memory options, uint256 registrationDeadline)
     {
-        return (owner(), s_question, s_yesVotes, s_noVotes, i_registrationDeadline);
+        return (owner(), s_question, s_options, i_registrationDeadline);
+    }
+
+    function getOptionVoteCount(uint256 optionIndex) public view returns (uint256) {
+        return s_voteCounts[optionIndex];
+    }
+
+    function getAllVoteCounts() public view returns (uint256[] memory) {
+        uint256[] memory counts = new uint256[](s_options.length);
+        for (uint256 i = 0; i < s_options.length; i++) {
+            counts[i] = s_voteCounts[i];
+        }
+        return counts;
+    }
+
+    function getOptionsCount() public view returns (uint256) {
+        return s_options.length;
     }
 }

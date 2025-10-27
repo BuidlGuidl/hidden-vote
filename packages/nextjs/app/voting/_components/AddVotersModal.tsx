@@ -186,17 +186,30 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
         complete: async (results: Papa.ParseResult<string[]>) => {
           const newVoters: VoterEntry[] = [];
           const errors: string[] = [];
-          const itemsToProcess: string[] = [];
+          const itemsToProcess: Array<{ input: string; status: boolean; rowIndex: number }> = [];
 
           results.data.forEach((row: string[], index: number) => {
             if (index === 0 && row[0]?.toLowerCase().includes("address")) return;
 
             const input = row[0]?.trim();
-            if (input) itemsToProcess.push(input);
+            if (!input) return;
+
+            // Parse the second column for status (true/false)
+            let status = defaultStatus;
+            if (row[1] !== undefined && row[1] !== null) {
+              const statusValue = row[1].trim().toLowerCase();
+              if (statusValue === "true" || statusValue === "1" || statusValue === "yes") {
+                status = true;
+              } else if (statusValue === "false" || statusValue === "0" || statusValue === "no") {
+                status = false;
+              }
+            }
+
+            itemsToProcess.push({ input, status, rowIndex: index });
           });
 
           for (let i = 0; i < itemsToProcess.length; i++) {
-            const originalInput = itemsToProcess[i];
+            const { input: originalInput, status, rowIndex } = itemsToProcess[i];
             let address = originalInput;
             let ensName: string | undefined;
 
@@ -206,13 +219,13 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
                 ensName = originalInput;
                 address = resolved;
               } else {
-                errors.push(`Row ${i + 1}: Failed to resolve ENS name ${originalInput}`);
+                errors.push(`Row ${rowIndex + 1}: Failed to resolve ENS name ${originalInput}`);
                 continue;
               }
             }
 
             if (!validateEthAddress(address)) {
-              errors.push(`Row ${i + 1}: Invalid address`);
+              errors.push(`Row ${rowIndex + 1}: Invalid address`);
               continue;
             }
 
@@ -227,9 +240,9 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
             const existsInBatch = newVoters.some(v => v.address.toLowerCase() === address.toLowerCase());
 
             if (!existsInVoters && !existsInBatch) {
-              newVoters.push({ address, status: defaultStatus, ensName });
+              newVoters.push({ address, status, ensName });
             } else if (existsInBatch) {
-              errors.push(`Row ${i + 1}: Duplicate address in file`);
+              errors.push(`Row ${rowIndex + 1}: Duplicate address in file`);
             }
           }
 
@@ -364,7 +377,8 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
 
           <div className="space-y-4">
             <p className="text-sm opacity-70">
-              Add addresses that are allowed to vote. Supports Ethereum addresses and ENS names (like phipsae.eth).
+              Add addresses that are allowed to vote. Supports Ethereum addresses and ENS names (like phipsae.eth). For
+              CSV imports, use format: address,true/false (true = allow, false = revoke).
             </p>
 
             <div className="flex items-center justify-between p-3 bg-base-200 rounded-lg">
@@ -398,7 +412,7 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
               <textarea
                 value={bulkAddresses}
                 onChange={e => setBulkAddresses(e.target.value)}
-                placeholder="0xAbc123..., phipsae.eth&#10;0xDef456..., vitalik.eth"
+                placeholder="0xAbc123..., phipsae.eth, 0xDef456..."
                 rows={5}
                 className="w-full px-4 py-3 border border-base-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all font-mono text-sm"
               />

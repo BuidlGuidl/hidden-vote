@@ -6,7 +6,7 @@ import OwnedVotings from "./OwnedVotings";
 import ParticipatedVotings from "./ParticipatedVotings";
 
 const VotingOverview = () => {
-  const [activeTab, setActiveTab] = useState<"all" | "owned" | "participated">("all");
+  const [activeTab, setActiveTab] = useState<"all" | "owned" | "participated">("owned");
 
   const tabs = [
     { id: "owned" as const, label: "My Votings", component: OwnedVotings },
@@ -31,7 +31,7 @@ const VotingOverview = () => {
         ))}
       </div>
 
-      <div className="w-full">
+      <div className="w-full max-h-[calc(3*280px+2*1rem)] overflow-y-auto pr-2">
         <ActiveComponent />
       </div>
     </div>

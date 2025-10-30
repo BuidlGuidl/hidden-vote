@@ -173,7 +173,7 @@ export default function VotingByAddressPage() {
                 </div>
               </div>
               <VotingStats contractAddress={address} />
-              <CreateCommitment compact leafEvents={leavesEvents} contractAddress={address} />
+              <CreateCommitment leafEvents={leavesEvents} contractAddress={address} />
               <CombinedVoteBurnerPaymaster contractAddress={address} leafEvents={leavesEvents} />
             </div>
           </div>

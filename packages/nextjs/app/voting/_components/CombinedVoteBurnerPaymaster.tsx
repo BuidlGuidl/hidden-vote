@@ -82,23 +82,19 @@ export const CombinedVoteBurnerPaymaster = ({
 
   const { data: contractInfo } = useDeployedContractInfo({ contractName: "Voting" });
 
-  // Determine if user can vote
   const canVoteEligible = Boolean(isConnected && isVoter === true && hasRegistered === true);
   const canVote = Boolean(canVoteEligible && isVotingOpen);
   const selectionLocked = Boolean(hasStoredProofData && voteStatus !== "failed");
 
-  // Keep current time updated for deadline checks
   useEffect(() => {
     const id = setInterval(() => setNowSec(Math.floor(Date.now() / 1000)), 1000);
     return () => clearInterval(id);
   }, []);
 
-  // Check for stored proof data on mount and when user/contract changes
   useEffect(() => {
     const hasProof = hasStoredProof(contractAddress, userAddress);
     setHasStoredProofData(hasProof);
 
-    // If there's a stored proof, get the vote choice
     if (hasProof) {
       const storedProofMetadata = getStoredProofMetadata(contractAddress, userAddress);
       setStoredVoteChoice(storedProofMetadata?.voteChoice ?? null);
@@ -106,16 +102,13 @@ export const CombinedVoteBurnerPaymaster = ({
       setStoredVoteChoice(null);
     }
 
-    // Load vote status from localStorage
     const meta = getStoredVoteMetadata(contractAddress, userAddress);
     setVoteStatus((meta?.status as any) ?? null);
     setVoteMeta(meta ?? null);
 
-    // Reset submission state when address changes
     setIsSubmitting(false);
   }, [contractAddress, userAddress]);
 
-  // Sync vote status if localStorage changes in other contexts/tabs
   useEffect(() => {
     if (!contractAddress || !userAddress) return;
     const onStorage = () => {
@@ -128,7 +121,6 @@ export const CombinedVoteBurnerPaymaster = ({
     return () => window.removeEventListener("storage", onStorage);
   }, [contractAddress, userAddress]);
 
-  // Poll while pending to reflect updates written by async flows
   useEffect(() => {
     if (voteStatus !== "pending") return;
     if (!contractAddress || !userAddress) return;
@@ -144,13 +136,11 @@ export const CombinedVoteBurnerPaymaster = ({
     return () => clearInterval(id);
   }, [voteStatus, contractAddress, userAddress]);
 
-  // Load commitment data from localStorage on mount or when contract/user changes
   useEffect(() => {
     if (contractAddress && userAddress) {
       const storedCommitmentData = loadCommitmentFromLocalStorage(contractAddress, userAddress);
       if (storedCommitmentData) {
         setLoadedCommitmentData(storedCommitmentData);
-        // If global state doesn't have commitment data, set it from localStorage
         if (!commitmentData) {
           setCommitmentData(storedCommitmentData);
         }
@@ -158,9 +148,7 @@ export const CombinedVoteBurnerPaymaster = ({
     }
   }, [contractAddress, userAddress, commitmentData, setCommitmentData]);
 
-  // Clear voting state when user address changes
   useEffect(() => {
-    // Reset vote choice when switching addresses
     setVoteChoice(null);
   }, [userAddress, setVoteChoice]);
 
@@ -297,7 +285,53 @@ export const CombinedVoteBurnerPaymaster = ({
         },
       );
 
-      const receipt = await pimlicoClient.waitForUserOperationReceipt({ hash: userOpHash });
+      const publicClient = createPublicClient({ chain: CHAIN_USED, transport: http(HTTP_CLIENT_USED) });
+      const proofPublicInputs = normalizePublicInputsToHex32(generated.publicInputs);
+      const ourNullifier = proofPublicInputs[0];
+
+      if (DEBUG) console.log("Transaction submitted. Waiting for confirmation...");
+
+      // Simple polling: just wait and check if nullifier was used
+      const waitForVoteConfirmation = async (): Promise<any> => {
+        const maxWait = 30_000; // 30 seconds (360 seconds is too long)
+        const startTime = Date.now();
+        let attempts = 0;
+
+        while (Date.now() - startTime < maxWait) {
+          await new Promise(resolve => setTimeout(resolve, 4000)); // Check every 4 seconds
+          attempts++;
+
+          try {
+            // Check if the nullifier has been used (which means vote was recorded)
+            const hasVoted = await publicClient.readContract({
+              address: contractAddress as `0x${string}`,
+              abi: contractInfo?.abi as any,
+              functionName: "hasVoted",
+              args: [ourNullifier],
+            });
+
+            if (DEBUG) console.log(`[Attempt ${attempts}] hasVoted(${ourNullifier}):`, hasVoted);
+
+            if (hasVoted) {
+              console.log("✅ Vote confirmed on-chain!");
+              return {
+                transactionHash: userOpHash,
+                confirmed: true,
+              };
+            }
+          } catch (err) {
+            if (DEBUG) console.log(`[Attempt ${attempts}] Check failed:`, err);
+          }
+        }
+
+        // console.log("⏱️ Timeout waiting for confirmation, but vote was submitted");
+        return {
+          transactionHash: userOpHash,
+          confirmed: false,
+        };
+      };
+
+      const receipt = await waitForVoteConfirmation();
       if (DEBUG) console.log("Transaction included:", receipt);
       const rawTxHash =
         (receipt as any)?.receipt?.transactionHash ||
@@ -322,7 +356,8 @@ export const CombinedVoteBurnerPaymaster = ({
       const isTimeout =
         name.includes("WaitForUserOperationReceiptTimeoutError") ||
         message.includes("WaitForUserOperationReceiptTimeoutError") ||
-        message.includes("Timed out while waiting for User Operation");
+        message.includes("Timed out while waiting for User Operation") ||
+        message.includes("Timeout: Vote not found on-chain");
 
       if (isTimeout) {
         try {
@@ -333,8 +368,8 @@ export const CombinedVoteBurnerPaymaster = ({
         } catch {}
         setVoteStatus("success");
         setVoteMeta(getStoredVoteMetadata(contractAddress, userAddress));
-        // Optionally notify success on timeout
-        // notification.success("Vote submitted (confirmation timed out, will appear shortly)");
+        // Vote was submitted but we couldn't confirm it within timeout
+        notification.success("Vote submitted successfully! Confirmation may take a moment.");
       } else {
         notification.error(message || "Failed to submit vote");
         try {
@@ -466,7 +501,7 @@ export const CombinedVoteBurnerPaymaster = ({
 
       <div className="divider"></div>
 
-      <div className="flex justify-center">
+      <div className="flex flex-col gap-3">
         {(() => {
           const isAlreadyVoted = voteStatus === "success";
           const isPendingVote = voteStatus === "pending";
@@ -479,13 +514,11 @@ export const CombinedVoteBurnerPaymaster = ({
             ? `✓ Already voted with ${votedOptionText}`
             : isPendingVote
               ? "Vote pending..."
-              : isSubmitting
-                ? "Generating & submitting..."
-                : !canVote
-                  ? canVoteEligible
-                    ? "Voting not open yet"
-                    : "Must register first"
-                  : "Vote";
+              : !canVote
+                ? canVoteEligible
+                  ? "Voting not open yet"
+                  : "Must register first"
+                : "Vote";
           const variant = isAlreadyVoted
             ? "btn-success"
             : isPendingVote
@@ -499,7 +532,14 @@ export const CombinedVoteBurnerPaymaster = ({
               onClick={disabled ? undefined : handleGenerateAndVote}
               disabled={disabled}
             >
-              {label}
+              {isSubmitting ? (
+                <div className="flex items-center gap-2">
+                  <span className="loading loading-spinner loading-md"></span>
+                  <span>voting...</span>
+                </div>
+              ) : (
+                label
+              )}
             </button>
           );
         })()}

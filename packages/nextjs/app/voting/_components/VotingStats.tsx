@@ -118,13 +118,6 @@ export const VotingStats = ({ contractAddress }: { contractAddress?: `0x${string
           );
         })}
       </div>
-      <div className="w-full bg-base-200 rounded-full h-2 overflow-hidden flex">
-        {opts.map((_, index) => {
-          const count = counts[index] ?? 0n;
-          const percentage = totalVotes > 0n ? Number((count * 100n) / totalVotes) : 0;
-          return <div key={index} className="h-2 bg-primary" style={{ width: `${percentage}%` }} />;
-        })}
-      </div>
     </div>
   );
 };

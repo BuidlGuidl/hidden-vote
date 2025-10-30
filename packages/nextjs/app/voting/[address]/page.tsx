@@ -9,9 +9,9 @@ import { useAccount, usePublicClient, useSwitchChain } from "wagmi";
 import { AddVotersModal } from "~~/app/voting/_components/AddVotersModal";
 import { CombinedVoteBurnerPaymaster } from "~~/app/voting/_components/CombinedVoteBurnerPaymaster";
 import { CreateCommitment } from "~~/app/voting/_components/CreateCommitment";
-import { LogLocalStorage } from "~~/app/voting/_components/LogLocalStorage";
 import { ShowVotersModal } from "~~/app/voting/_components/ShowVotersModal";
 import { VotingStats } from "~~/app/voting/_components/VotingStats";
+import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 
 interface LeavesData {
   leaves: {
@@ -68,7 +68,7 @@ async function fetchLeaves(votingAddress: string, isBase: boolean, limit = 200) 
 export default function VotingByAddressPage() {
   const params = useParams<{ address: `0x${string}` }>();
   const address = params?.address as `0x${string}` | undefined;
-  const { chain } = useAccount();
+  const { chain, address: userAddress } = useAccount();
   const isBase = chain?.id === base.id;
   const baseClient = usePublicClient({ chainId: base.id });
   const mainnetClient = usePublicClient({ chainId: mainnet.id });
@@ -76,6 +76,17 @@ export default function VotingByAddressPage() {
 
   // Guard: no address in URL yet
   const enabled = Boolean(address && address.length === 42);
+
+  // Read voting data to check if user has registered
+  const { data: votingData } = useScaffoldReadContract({
+    contractName: "Voting",
+    functionName: "getVotingData",
+    args: [userAddress],
+    address: address,
+  });
+
+  const votingDataArray = votingData as unknown as any[];
+  const hasRegistered = votingDataArray?.[4] as boolean;
 
   const { data } = useQuery({
     queryKey: ["leavess", address, chain?.id],
@@ -174,9 +185,10 @@ export default function VotingByAddressPage() {
                 </div>
               </div>
               <VotingStats contractAddress={address} />
-              <CreateCommitment compact leafEvents={leavesEvents} contractAddress={address} />
-              <CombinedVoteBurnerPaymaster contractAddress={address} leafEvents={leavesEvents} />
-              {address && <LogLocalStorage contractAddress={address} />}
+
+              {!hasRegistered && <CreateCommitment leafEvents={leavesEvents} contractAddress={address} />}
+
+              {hasRegistered && <CombinedVoteBurnerPaymaster contractAddress={address} leafEvents={leavesEvents} />}
             </div>
           </div>
         )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { InformationCircleIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
 interface CreateVotingModalProps {
@@ -16,6 +17,7 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
   const [question, setQuestion] = useState("");
   const [duration, setDuration] = useState<string>("1");
   const [unit, setUnit] = useState<"minutes" | "hours" | "days">("days");
+  const [options, setOptions] = useState<string[]>(["Yes", "No"]);
 
   const durationInSeconds = useMemo(() => {
     const parsed = parseInt(duration, 10);
@@ -55,16 +57,42 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
     }
   }, [duration, unit]);
 
+  const addOption = () => {
+    if (options.length < 16) {
+      setOptions([...options, ""]);
+    }
+  };
+
+  const removeOption = (index: number) => {
+    if (options.length > 2) {
+      setOptions(options.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateOption = (index: number, value: string) => {
+    const newOptions = [...options];
+    newOptions[index] = value;
+    setOptions(newOptions);
+  };
+
   const handleCreateVoting = async () => {
     try {
+      // Validate options
+      const validOptions = options.filter(opt => opt.trim() !== "");
+      if (validOptions.length < 2) {
+        alert("Please add at least 2 valid options");
+        return;
+      }
+
       await writeVotingAsync({
         functionName: "createVoting",
-        args: [question, durationInSeconds],
-        gas: 1100000n,
+        args: [question, durationInSeconds, validOptions] as any,
+        gas: 5000000n,
       });
       setQuestion("");
       setDuration("1");
       setUnit("days");
+      setOptions(["Yes", "No"]);
       onClose();
     } catch (error) {
       console.error("Failed to create voting:", error);
@@ -75,6 +103,7 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
     setQuestion("");
     setDuration("1");
     setUnit("days");
+    setOptions(["Yes", "No"]);
     onClose();
   };
 
@@ -107,7 +136,7 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
 
         <div className="space-y-6">
           <div className="form-control w-full">
-            <label className="label">
+            <label className="label mb-2">
               <span className="label-text font-semibold text-base flex items-center gap-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -140,7 +169,7 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
           </div>
 
           <div className="form-control w-full">
-            <label className="label">
+            <label className="label mb-2">
               <span className="label-text font-semibold text-base flex items-center gap-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -155,6 +184,12 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
                   />
                 </svg>
                 Registration Period
+                <div
+                  className="tooltip tooltip-right before:!max-w-[280px] before:!rounded-none before:!text-left before:!whitespace-normal before:!p-3"
+                  data-tip="Prevents immediate voting after registration. Time gap ensures privacy by making it impossible to link registration addresses to voting addresses."
+                >
+                  <InformationCircleIcon className="h-5 w-5 text-base-content/50 hover:text-primary cursor-help transition-colors" />
+                </div>
               </span>
             </label>
             <div className="flex gap-3">
@@ -178,9 +213,63 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
               </select>
             </div>
             {formatDuration && (
-              <label className="label mt-2">
-                <span className="label-text-alt text-base-content/60">Voters can register for {formatDuration}</span>
-              </label>
+              <div className="text-center mt-2">
+                <span className="label-text-alt text-base-content/60">Voters have {formatDuration} to register</span>
+              </div>
+            )}
+          </div>
+
+          <div className="form-control w-full">
+            <label className="label mb-2">
+              <span className="label-text font-semibold text-base flex items-center gap-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-primary"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                  <path
+                    fillRule="evenodd"
+                    d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Voting Options ({options.length}/16)
+              </span>
+            </label>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {options.map((option, index) => (
+                <div key={index} className="flex gap-2">
+                  <span className="flex items-center justify-center w-8 text-sm opacity-70">{index + 1}.</span>
+                  <input
+                    type="text"
+                    className="input input-bordered flex-1 focus:input-primary transition-colors"
+                    placeholder={`Option ${index + 1}`}
+                    value={option}
+                    onChange={e => updateOption(index, e.target.value)}
+                  />
+                  {options.length > 2 && (
+                    <button
+                      onClick={() => removeOption(index)}
+                      className="btn btn-ghost btn-square"
+                      disabled={isMining}
+                    >
+                      <TrashIcon className="h-5 w-5" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            {options.length < 16 && (
+              <button
+                onClick={addOption}
+                className="btn btn-outline btn-primary w-full mt-3 gap-2 text-base"
+                disabled={isMining}
+              >
+                <PlusIcon className="h-5 w-5" />
+                Add Another Option
+              </button>
             )}
           </div>
 
@@ -189,9 +278,21 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
               Cancel
             </button>
             <button
-              className="btn btn-primary btn-lg min-w-[160px]"
+              className={`btn btn-lg min-w-[180px] transition-all ${
+                !isMining &&
+                question.trim() &&
+                durationInSeconds > 0n &&
+                options.filter(opt => opt.trim() !== "").length >= 2
+                  ? "bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 hover:from-blue-500 hover:via-purple-500 hover:to-pink-500 text-white border-none shadow-lg hover:shadow-xl hover:scale-105"
+                  : "btn-disabled"
+              }`}
               onClick={handleCreateVoting}
-              disabled={isMining || !question.trim() || durationInSeconds <= 0n}
+              disabled={
+                isMining ||
+                !question.trim() ||
+                durationInSeconds <= 0n ||
+                options.filter(opt => opt.trim() !== "").length < 2
+              }
             >
               {isMining ? (
                 <>
@@ -199,7 +300,12 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
                   Creating...
                 </>
               ) : (
-                <>Create Voting</>
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  Create Voting
+                </>
               )}
             </button>
           </div>

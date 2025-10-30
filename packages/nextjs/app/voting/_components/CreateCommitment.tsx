@@ -19,10 +19,9 @@ interface CommitmentData {
 interface CreateCommitmentProps {
   leafEvents?: any[];
   contractAddress?: `0x${string}`;
-  compact?: boolean;
 }
 
-export const CreateCommitment = ({ leafEvents = [], contractAddress, compact = false }: CreateCommitmentProps) => {
+export const CreateCommitment = ({ leafEvents = [], contractAddress }: CreateCommitmentProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isInserting, setIsInserting] = useState(false);
   const [, setIsInserted] = useState(false);
@@ -93,7 +92,6 @@ export const CreateCommitment = ({ leafEvents = [], contractAddress, compact = f
               setCommitmentData(updatedData);
               setIsInserted(true);
 
-              // Save commitment data to localStorage after successful insertion
               saveCommitmentToLocalStorage(updatedData, contractAddress, userAddress);
             }
           },
@@ -115,9 +113,6 @@ export const CreateCommitment = ({ leafEvents = [], contractAddress, compact = f
     <div className="bg-base-100 shadow rounded-xl p-6 space-y-5">
       <div className="space-y-1 text-center">
         <h2 className="text-2xl font-bold">Register for this vote</h2>
-        {!compact && (
-          <p className="text-sm opacity-70">Generate your anonymous identifier and insert it into the Merkle tree.</p>
-        )}
       </div>
 
       <div className="flex flex-col gap-3">
@@ -142,7 +137,7 @@ export const CreateCommitment = ({ leafEvents = [], contractAddress, compact = f
           ) : isInserting ? (
             <>
               <span className="loading loading-spinner loading-sm"></span>
-              Inserting into Merkle tree...
+              registering...
             </>
           ) : !isConnected ? (
             "Connect wallet to register"

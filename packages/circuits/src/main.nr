@@ -6,7 +6,7 @@ fn main(
     // public inputs
     root: pub Field,
     nullifier_hash: pub Field,
-    vote: pub bool,
+    vote: pub Field,
     depth: pub u32,
     // private inputs
     nullifier: Field,
@@ -34,7 +34,6 @@ fn main(
 
     assert(computed_root == root);
 
-    // just vote binding, prevent front running
-    let vote_field = vote as Field;
-    assert((vote_field * vote_field) == vote_field);
+    // Constrain vote to be between 0 and 15
+    assert(vote as u8 < 16);
 }

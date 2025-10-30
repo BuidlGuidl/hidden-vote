@@ -16,19 +16,6 @@ export const VoteChoice = ({ contractAddress }: { contractAddress?: `0x${string}
   const votingStatsArray = votingStats as unknown as any[];
   const options = (votingStatsArray?.[2] as string[]) || [];
 
-  const getColorForIndex = (index: number) => {
-    const colors = [
-      "btn-success",
-      "btn-error",
-      "btn-info",
-      "btn-warning",
-      "btn-primary",
-      "btn-secondary",
-      "btn-accent",
-    ];
-    return colors[index % colors.length];
-  };
-
   return (
     <div className="bg-base-100 shadow rounded-xl p-6 space-y-4">
       <div className="space-y-1 text-center">
@@ -42,12 +29,12 @@ export const VoteChoice = ({ contractAddress }: { contractAddress?: `0x${string}
         {options.map((option, index) => (
           <button
             key={index}
-            className={`btn btn-lg ${voteChoice === index ? getColorForIndex(index) : "btn-outline"}`}
+            className={`btn btn-lg ${voteChoice === index ? "btn-primary" : "btn-outline"}`}
             onClick={() => setVoteChoice(index)}
           >
             <div className="flex flex-col items-center">
-              <span className="text-xs opacity-70">Option {index}</span>
-              <span className="truncate max-w-full">{option}</span>
+              <span className="text-xs opacity-70">Option {index + 1}</span>
+              <span className="truncate max-w-full font-normal">{option}</span>
             </div>
           </button>
         ))}

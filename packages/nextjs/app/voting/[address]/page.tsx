@@ -9,7 +9,6 @@ import { useAccount, usePublicClient, useSwitchChain } from "wagmi";
 import { AddVotersModal } from "~~/app/voting/_components/AddVotersModal";
 import { CombinedVoteBurnerPaymaster } from "~~/app/voting/_components/CombinedVoteBurnerPaymaster";
 import { CreateCommitment } from "~~/app/voting/_components/CreateCommitment";
-import { LogLocalStorage } from "~~/app/voting/_components/LogLocalStorage";
 import { ShowVotersModal } from "~~/app/voting/_components/ShowVotersModal";
 import { VotingStats } from "~~/app/voting/_components/VotingStats";
 
@@ -176,7 +175,6 @@ export default function VotingByAddressPage() {
               <VotingStats contractAddress={address} />
               <CreateCommitment compact leafEvents={leavesEvents} contractAddress={address} />
               <CombinedVoteBurnerPaymaster contractAddress={address} leafEvents={leavesEvents} />
-              {address && <LogLocalStorage contractAddress={address} />}
             </div>
           </div>
         )}

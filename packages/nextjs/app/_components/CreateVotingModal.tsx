@@ -87,7 +87,7 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
       await writeVotingAsync({
         functionName: "createVoting",
         args: [question, durationInSeconds, validOptions] as any,
-        gas: 1500000n,
+        gas: 5000000n,
       });
       setQuestion("");
       setDuration("1");
@@ -235,11 +235,11 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {options.map((option, index) => (
                 <div key={index} className="flex gap-2">
-                  <span className="flex items-center justify-center w-8 text-sm opacity-70">{index}.</span>
+                  <span className="flex items-center justify-center w-8 text-sm opacity-70">{index + 1}.</span>
                   <input
                     type="text"
                     className="input input-bordered flex-1 focus:input-primary transition-colors"
-                    placeholder={`Option ${index}`}
+                    placeholder={`Option ${index + 1}`}
                     value={option}
                     onChange={e => updateOption(index, e.target.value)}
                   />

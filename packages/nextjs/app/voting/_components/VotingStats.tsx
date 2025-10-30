@@ -78,50 +78,6 @@ export const VotingStats = ({ contractAddress }: { contractAddress?: `0x${string
     };
   }, [deadlineMs]);
 
-  const getColorForIndex = (index: number) => {
-    const colors = [
-      "text-success",
-      "text-error",
-      "text-info",
-      "text-warning",
-      "text-primary",
-      "text-secondary",
-      "text-accent",
-      "text-pink-500",
-      "text-purple-500",
-      "text-indigo-500",
-      "text-blue-500",
-      "text-cyan-500",
-      "text-teal-500",
-      "text-green-500",
-      "text-lime-500",
-      "text-orange-500",
-    ];
-    return colors[index % colors.length];
-  };
-
-  const getBgColorForIndex = (index: number) => {
-    const colors = [
-      "bg-success",
-      "bg-error",
-      "bg-info",
-      "bg-warning",
-      "bg-primary",
-      "bg-secondary",
-      "bg-accent",
-      "bg-pink-500",
-      "bg-purple-500",
-      "bg-indigo-500",
-      "bg-blue-500",
-      "bg-cyan-500",
-      "bg-teal-500",
-      "bg-green-500",
-      "bg-lime-500",
-      "bg-orange-500",
-    ];
-    return colors[index % colors.length];
-  };
-
   return (
     <div className="bg-base-100 shadow rounded-xl p-4 space-y-3">
       {timeLeft ? (
@@ -154,9 +110,9 @@ export const VotingStats = ({ contractAddress }: { contractAddress?: `0x${string
           return (
             <div key={index} className="rounded-lg border border-base-300 p-3">
               <div className="text-xs opacity-70 truncate" title={option}>
-                {index}. {option}
+                {index + 1}. {option}
               </div>
-              <div className={`text-xl font-bold ${getColorForIndex(index)}`}>{count.toString()}</div>
+              <div className="text-xl font-bold">{count.toString()}</div>
               <div className="text-xs opacity-70">{percentage.toFixed(1)}%</div>
             </div>
           );
@@ -166,7 +122,7 @@ export const VotingStats = ({ contractAddress }: { contractAddress?: `0x${string
         {opts.map((_, index) => {
           const count = counts[index] ?? 0n;
           const percentage = totalVotes > 0n ? Number((count * 100n) / totalVotes) : 0;
-          return <div key={index} className={`h-2 ${getBgColorForIndex(index)}`} style={{ width: `${percentage}%` }} />;
+          return <div key={index} className="h-2 bg-primary" style={{ width: `${percentage}%` }} />;
         })}
       </div>
     </div>

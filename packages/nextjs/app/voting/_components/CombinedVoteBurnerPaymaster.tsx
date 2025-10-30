@@ -11,13 +11,13 @@ import { poseidon1, poseidon2 } from "poseidon-lite";
 import { createPublicClient, encodeFunctionData, http } from "viem";
 import { EntryPointVersion, entryPoint07Address } from "viem/account-abstraction";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { base, mainnet } from "viem/chains";
 import { useAccount } from "wagmi";
 import { useDeployedContractInfo, useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 import { useSelectedNetwork } from "~~/hooks/scaffold-eth";
 import { useGlobalState } from "~~/services/store/store";
 import {
   type AllowedChainIds,
+  getAlchemyHttpUrl,
   getStoredProofMetadata,
   getStoredVoteMetadata,
   hasStoredProof,
@@ -27,17 +27,6 @@ import {
   saveVoteToLocalStorage,
   updateVoteInLocalStorage,
 } from "~~/utils/scaffold-eth";
-
-const chains = {
-  mainnet: {
-    network: mainnet,
-    http: `https://eth-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
-  },
-  base: {
-    network: base,
-    http: `https://base-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
-  },
-};
 
 export const CombinedVoteBurnerPaymaster = ({
   contractAddress,
@@ -59,9 +48,9 @@ export const CombinedVoteBurnerPaymaster = ({
   const selectedNetwork = useSelectedNetwork(chain?.id as AllowedChainIds | undefined);
   const DEBUG = process.env.NEXT_PUBLIC_DEBUG_LOGS === "true";
   const { CHAIN_USED, HTTP_CLIENT_USED, pimlicoUrl } = useMemo(() => {
-    const selectedChainConfig = Object.values(chains).find(cfg => cfg.network.id === selectedNetwork.id);
     const chainUsed = selectedNetwork;
-    const httpClientUsed = selectedChainConfig?.http || selectedNetwork.rpcUrls?.default?.http?.[0] || "";
+    const alchemyHttpUrl = getAlchemyHttpUrl(chainUsed.id);
+    const httpClientUsed = alchemyHttpUrl || selectedNetwork.rpcUrls?.default?.http?.[0] || "";
     const pimlico = `https://api.pimlico.io/v2/${chainUsed.id}/rpc?apikey=${process.env.NEXT_PUBLIC_PIMLICO_API_KEY}`;
     return { CHAIN_USED: chainUsed, HTTP_CLIENT_USED: httpClientUsed, pimlicoUrl: pimlico };
   }, [selectedNetwork]);
@@ -382,7 +371,7 @@ export const CombinedVoteBurnerPaymaster = ({
           </div>
           {typeof voteMeta.voteChoice === "number" && (
             <div>
-              <span className="opacity-70">Choice:</span> Option {voteMeta.voteChoice} (
+              <span className="opacity-70">Choice:</span> Option {voteMeta.voteChoice + 1} (
               {options[voteMeta.voteChoice] || "Unknown"})
             </div>
           )}
@@ -455,29 +444,19 @@ export const CombinedVoteBurnerPaymaster = ({
         >
           {options.map((option, index) => {
             const isSelected = voteChoice === index || (hasStoredProofData && storedVoteChoice === index);
-            const colors = [
-              "btn-success",
-              "btn-error",
-              "btn-info",
-              "btn-warning",
-              "btn-primary",
-              "btn-secondary",
-              "btn-accent",
-            ];
-            const btnColor = colors[index % colors.length];
             return (
               <button
                 key={index}
                 className={`btn btn-lg ${
-                  isSelected ? btnColor : "btn-outline"
+                  isSelected ? "btn-primary" : "btn-outline"
                 } ${!canVote && !hasStoredProofData ? "btn-disabled" : ""}`}
                 style={selectionLocked ? { pointerEvents: "none", cursor: "not-allowed" } : {}}
                 onClick={canVote && !selectionLocked ? () => setVoteChoice(index) : undefined}
                 disabled={!canVote && !hasStoredProofData}
               >
                 <div className="flex flex-col items-center">
-                  <span className="text-xs opacity-70">Option {index}</span>
-                  <span className="truncate max-w-full">{option}</span>
+                  <span className="text-xs opacity-70">Option {index + 1}</span>
+                  <span className="truncate max-w-full font-normal">{option}</span>
                 </div>
               </button>
             );
@@ -494,7 +473,7 @@ export const CombinedVoteBurnerPaymaster = ({
           const disabled = isSubmitting || isPendingVote || isAlreadyVoted || !canVote;
           const votedOptionText =
             typeof storedVoteChoice === "number"
-              ? `Option ${storedVoteChoice} (${options[storedVoteChoice] || "Unknown"})`
+              ? `Option ${storedVoteChoice + 1} (${options[storedVoteChoice] || "Unknown"})`
               : "";
           const label = isAlreadyVoted
             ? `✓ Already voted with ${votedOptionText}`

@@ -19,7 +19,7 @@ const Home: NextPage = () => {
                 Hidden Vote
               </h1>
               <p className="text-xl opacity-70 max-w-2xl">
-                Host private voting sessions with registration periods. Votes stay private, results stay transparent.
+                Host private voting sessions. Votes stay private, results stay transparent.
               </p>
             </div>
             <div className="flex-shrink-0">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { InformationCircleIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
 interface CreateVotingModalProps {
@@ -136,7 +136,7 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
 
         <div className="space-y-6">
           <div className="form-control w-full">
-            <label className="label">
+            <label className="label mb-2">
               <span className="label-text font-semibold text-base flex items-center gap-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -169,7 +169,7 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
           </div>
 
           <div className="form-control w-full">
-            <label className="label">
+            <label className="label mb-2">
               <span className="label-text font-semibold text-base flex items-center gap-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -184,6 +184,12 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
                   />
                 </svg>
                 Registration Period
+                <div
+                  className="tooltip tooltip-right before:!max-w-[280px] before:!rounded-none before:!text-left before:!whitespace-normal before:!p-3"
+                  data-tip="Prevents immediate voting after registration. Time gap ensures privacy by making it impossible to link registration addresses to voting addresses."
+                >
+                  <InformationCircleIcon className="h-5 w-5 text-base-content/50 hover:text-primary cursor-help transition-colors" />
+                </div>
               </span>
             </label>
             <div className="flex gap-3">
@@ -207,14 +213,14 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
               </select>
             </div>
             {formatDuration && (
-              <label className="label mt-2">
-                <span className="label-text-alt text-base-content/60">Voters can register for {formatDuration}</span>
-              </label>
+              <div className="text-center mt-2">
+                <span className="label-text-alt text-base-content/60">Voters have {formatDuration} to register</span>
+              </div>
             )}
           </div>
 
           <div className="form-control w-full">
-            <label className="label">
+            <label className="label mb-2">
               <span className="label-text font-semibold text-base flex items-center gap-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

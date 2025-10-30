@@ -36,7 +36,7 @@ const VotingStatus = ({ votingAddress }: VotingStatusProps) => {
 
   return (
     <div className="flex items-center gap-2">
-      <div className={`badge ${isOpen ? "badge-success" : "badge-error"} badge-sm`}>
+      <div className={`badge ${isOpen ? "badge-success" : "badge-warning"} badge-sm`}>
         {isOpen ? "Registration Open" : "Registration Closed"}
       </div>
       {isOpen && <span className="text-xs opacity-60">{formatTimeLeft(timeLeft)}</span>}

@@ -1,27 +1,56 @@
+"use client";
+
+import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 import { useGlobalState } from "~~/services/store/store";
 
-export const VoteChoice = () => {
+export const VoteChoice = ({ contractAddress }: { contractAddress?: `0x${string}` }) => {
   const voteChoice = useGlobalState(state => state.voteChoice);
   const setVoteChoice = useGlobalState(state => state.setVoteChoice);
+
+  const { data: votingStats } = useScaffoldReadContract({
+    contractName: "Voting",
+    functionName: "getVotingStats",
+    address: contractAddress,
+  });
+
+  const votingStatsArray = votingStats as unknown as any[];
+  const options = (votingStatsArray?.[2] as string[]) || [];
+
+  const getColorForIndex = (index: number) => {
+    const colors = [
+      "btn-success",
+      "btn-error",
+      "btn-info",
+      "btn-warning",
+      "btn-primary",
+      "btn-secondary",
+      "btn-accent",
+    ];
+    return colors[index % colors.length];
+  };
 
   return (
     <div className="bg-base-100 shadow rounded-xl p-6 space-y-4">
       <div className="space-y-1 text-center">
         <h2 className="text-2xl font-bold">Choose your vote</h2>
       </div>
-      <div className="flex gap-3 justify-center">
-        <button
-          className={`btn btn-lg ${voteChoice === true ? "btn-success" : "btn-outline"}`}
-          onClick={() => setVoteChoice(true)}
-        >
-          Yes
-        </button>
-        <button
-          className={`btn btn-lg ${voteChoice === false ? "btn-error" : "btn-outline"}`}
-          onClick={() => setVoteChoice(false)}
-        >
-          No
-        </button>
+      <div
+        className={`grid gap-3 ${
+          options.length <= 2 ? "grid-cols-2" : options.length <= 4 ? "grid-cols-2" : "grid-cols-3"
+        }`}
+      >
+        {options.map((option, index) => (
+          <button
+            key={index}
+            className={`btn btn-lg ${voteChoice === index ? getColorForIndex(index) : "btn-outline"}`}
+            onClick={() => setVoteChoice(index)}
+          >
+            <div className="flex flex-col items-center">
+              <span className="text-xs opacity-70">Option {index}</span>
+              <span className="truncate max-w-full">{option}</span>
+            </div>
+          </button>
+        ))}
       </div>
     </div>
   );

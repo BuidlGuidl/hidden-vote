@@ -11,7 +11,7 @@ import { poseidon1, poseidon2 } from "poseidon-lite";
 import { createPublicClient, encodeFunctionData, http } from "viem";
 import { EntryPointVersion, entryPoint07Address } from "viem/account-abstraction";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { base, baseSepolia, mainnet, sepolia } from "viem/chains";
+import { base, mainnet } from "viem/chains";
 import { useAccount } from "wagmi";
 import { useDeployedContractInfo, useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 import { useSelectedNetwork } from "~~/hooks/scaffold-eth";
@@ -29,21 +29,13 @@ import {
 } from "~~/utils/scaffold-eth";
 
 const chains = {
-  baseSepolia: {
-    network: baseSepolia,
-    http: "https://sepolia.base.org",
-  },
-  sepolia: {
-    network: sepolia,
-    http: "https://rpc.sepolia.org",
-  },
   mainnet: {
     network: mainnet,
-    http: "https://mainnet.rpc.buidlguidl.com",
+    http: `https://eth-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
   },
   base: {
     network: base,
-    http: "https://mainnet.base.org",
+    http: `https://base-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
   },
 };
 
@@ -57,7 +49,7 @@ export const CombinedVoteBurnerPaymaster = ({
   const { commitmentData, voteChoice, setVoteChoice, setProofData, setCommitmentData } = useGlobalState();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasStoredProofData, setHasStoredProofData] = useState(false);
-  const [storedVoteChoice, setStoredVoteChoice] = useState<boolean | null>(null);
+  const [storedVoteChoice, setStoredVoteChoice] = useState<number | null>(null);
   const [loadedCommitmentData, setLoadedCommitmentData] = useState<any>(null);
   const [voteStatus, setVoteStatus] = useState<"pending" | "success" | "failed" | null>(null);
   const [voteMeta, setVoteMeta] = useState<any>(null);
@@ -81,6 +73,12 @@ export const CombinedVoteBurnerPaymaster = ({
     address: contractAddress,
   });
 
+  const { data: votingStats } = useScaffoldReadContract({
+    contractName: "Voting",
+    functionName: "getVotingStats",
+    address: contractAddress,
+  });
+
   const votingDataArray = votingData as unknown as any[];
   const depth = Number(votingDataArray?.[1] ?? 0);
   const root = votingDataArray?.[2] as bigint;
@@ -89,6 +87,9 @@ export const CombinedVoteBurnerPaymaster = ({
   const registrationDeadline = votingDataArray?.[5] as bigint;
   const now = BigInt(nowSec);
   const isVotingOpen = typeof registrationDeadline === "bigint" ? now > registrationDeadline : false;
+
+  const votingStatsArray = votingStats as unknown as any[];
+  const options = (votingStatsArray?.[2] as string[]) || [];
 
   const { data: contractInfo } = useDeployedContractInfo({ contractName: "Voting" });
 
@@ -131,7 +132,7 @@ export const CombinedVoteBurnerPaymaster = ({
     const onStorage = () => {
       const meta = getStoredVoteMetadata(contractAddress, userAddress);
       if (meta?.status) setVoteStatus(meta.status as any);
-      if (typeof meta?.voteChoice === "boolean") setStoredVoteChoice(meta.voteChoice);
+      if (typeof meta?.voteChoice === "number") setStoredVoteChoice(meta.voteChoice);
       setVoteMeta(meta ?? null);
     };
     window.addEventListener("storage", onStorage);
@@ -146,7 +147,7 @@ export const CombinedVoteBurnerPaymaster = ({
       const meta = getStoredVoteMetadata(contractAddress, userAddress);
       if (meta?.status && meta.status !== "pending") {
         setVoteStatus(meta.status as any);
-        if (typeof meta.voteChoice === "boolean") setStoredVoteChoice(meta.voteChoice);
+        if (typeof meta.voteChoice === "number") setStoredVoteChoice(meta.voteChoice);
         setVoteMeta(meta ?? null);
         clearInterval(id);
       }
@@ -220,7 +221,8 @@ export const CombinedVoteBurnerPaymaster = ({
     try {
       setIsSubmitting(true);
       const effectiveVoteChoice = voteChoice ?? storedVoteChoice;
-      if (effectiveVoteChoice === null) throw new Error("Please select Yes or No first");
+      if (effectiveVoteChoice === null || effectiveVoteChoice === undefined)
+        throw new Error("Please select an option first");
 
       // Use commitment data from global state or loaded from localStorage as fallback
       const activeCommitmentData = commitmentData || loadedCommitmentData;
@@ -378,9 +380,10 @@ export const CombinedVoteBurnerPaymaster = ({
           <div>
             <span className="opacity-70">Status:</span> {voteMeta.status ?? "—"}
           </div>
-          {typeof voteMeta.voteChoice === "boolean" && (
+          {typeof voteMeta.voteChoice === "number" && (
             <div>
-              <span className="opacity-70">Choice:</span> {voteMeta.voteChoice ? "YES" : "NO"}
+              <span className="opacity-70">Choice:</span> Option {voteMeta.voteChoice} (
+              {options[voteMeta.voteChoice] || "Unknown"})
             </div>
           )}
           {voteMeta.txHash && (
@@ -445,35 +448,40 @@ export const CombinedVoteBurnerPaymaster = ({
         <div className="space-y-1 text-center">
           <h2 className="text-2xl font-bold">Choose your vote</h2>
         </div>
-        <div className="flex gap-3 justify-center">
-          <button
-            className={`btn btn-lg ${
-              voteChoice === true
-                ? "btn-success"
-                : hasStoredProofData && storedVoteChoice === true
-                  ? "btn-success"
-                  : "btn-outline"
-            } ${!canVote && !hasStoredProofData ? "btn-disabled" : ""}`}
-            style={selectionLocked ? { pointerEvents: "none", cursor: "not-allowed" } : {}}
-            onClick={canVote && !selectionLocked ? () => setVoteChoice(true) : undefined}
-            disabled={!canVote && !hasStoredProofData}
-          >
-            Yes
-          </button>
-          <button
-            className={`btn btn-lg ${
-              voteChoice === false
-                ? "btn-error"
-                : hasStoredProofData && storedVoteChoice === false
-                  ? "btn-error"
-                  : "btn-outline"
-            } ${!canVote && !hasStoredProofData ? "btn-disabled" : ""}`}
-            style={selectionLocked ? { pointerEvents: "none", cursor: "not-allowed" } : {}}
-            onClick={canVote && !selectionLocked ? () => setVoteChoice(false) : undefined}
-            disabled={!canVote && !hasStoredProofData}
-          >
-            No
-          </button>
+        <div
+          className={`grid gap-3 ${
+            options.length <= 2 ? "grid-cols-2" : options.length <= 4 ? "grid-cols-2" : "grid-cols-3"
+          }`}
+        >
+          {options.map((option, index) => {
+            const isSelected = voteChoice === index || (hasStoredProofData && storedVoteChoice === index);
+            const colors = [
+              "btn-success",
+              "btn-error",
+              "btn-info",
+              "btn-warning",
+              "btn-primary",
+              "btn-secondary",
+              "btn-accent",
+            ];
+            const btnColor = colors[index % colors.length];
+            return (
+              <button
+                key={index}
+                className={`btn btn-lg ${
+                  isSelected ? btnColor : "btn-outline"
+                } ${!canVote && !hasStoredProofData ? "btn-disabled" : ""}`}
+                style={selectionLocked ? { pointerEvents: "none", cursor: "not-allowed" } : {}}
+                onClick={canVote && !selectionLocked ? () => setVoteChoice(index) : undefined}
+                disabled={!canVote && !hasStoredProofData}
+              >
+                <div className="flex flex-col items-center">
+                  <span className="text-xs opacity-70">Option {index}</span>
+                  <span className="truncate max-w-full">{option}</span>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -484,8 +492,12 @@ export const CombinedVoteBurnerPaymaster = ({
           const isAlreadyVoted = voteStatus === "success";
           const isPendingVote = voteStatus === "pending";
           const disabled = isSubmitting || isPendingVote || isAlreadyVoted || !canVote;
+          const votedOptionText =
+            typeof storedVoteChoice === "number"
+              ? `Option ${storedVoteChoice} (${options[storedVoteChoice] || "Unknown"})`
+              : "";
           const label = isAlreadyVoted
-            ? `✓ Already voted with ${storedVoteChoice === true ? "YES" : storedVoteChoice === false ? "NO" : ""}`
+            ? `✓ Already voted with ${votedOptionText}`
             : isPendingVote
               ? "Vote pending..."
               : isSubmitting
@@ -520,7 +532,7 @@ export const CombinedVoteBurnerPaymaster = ({
 // Local helpers adapted from existing components
 const generateProof = async (
   _root: bigint,
-  _vote: boolean,
+  _vote: number,
   _depth: number,
   _nullifier: string,
   _secret: string,
@@ -548,7 +560,7 @@ const generateProof = async (
   const input = {
     root: _root.toString(),
     nullifier_hash: nullifierHash.toString(),
-    vote: _vote,
+    vote: _vote.toString(),
     depth: _depth.toString(),
     nullifier: BigInt(_nullifier).toString(),
     secret: BigInt(_secret).toString(),
@@ -579,9 +591,6 @@ const toBytes32Hex = (value: any): `0x${string}` => {
     const hex = value.slice(2);
     if (hex.length > 64) throw new Error("Hex value too long for bytes32");
     return `0x${hex.padStart(64, "0")}`;
-  }
-  if (typeof value === "boolean") {
-    return `0x${(value ? 1n : 0n).toString(16).padStart(64, "0")}`;
   }
   if (typeof value === "bigint") {
     return `0x${value.toString(16).padStart(64, "0")}`;

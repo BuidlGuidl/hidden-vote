@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
 interface CreateVotingModalProps {
@@ -16,6 +17,7 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
   const [question, setQuestion] = useState("");
   const [duration, setDuration] = useState<string>("1");
   const [unit, setUnit] = useState<"minutes" | "hours" | "days">("days");
+  const [options, setOptions] = useState<string[]>(["Yes", "No"]);
 
   const durationInSeconds = useMemo(() => {
     const parsed = parseInt(duration, 10);
@@ -55,16 +57,42 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
     }
   }, [duration, unit]);
 
+  const addOption = () => {
+    if (options.length < 16) {
+      setOptions([...options, ""]);
+    }
+  };
+
+  const removeOption = (index: number) => {
+    if (options.length > 2) {
+      setOptions(options.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateOption = (index: number, value: string) => {
+    const newOptions = [...options];
+    newOptions[index] = value;
+    setOptions(newOptions);
+  };
+
   const handleCreateVoting = async () => {
     try {
+      // Validate options
+      const validOptions = options.filter(opt => opt.trim() !== "");
+      if (validOptions.length < 2) {
+        alert("Please add at least 2 valid options");
+        return;
+      }
+
       await writeVotingAsync({
         functionName: "createVoting",
-        args: [question, durationInSeconds],
-        gas: 1100000n,
+        args: [question, durationInSeconds, validOptions] as any,
+        gas: 1500000n,
       });
       setQuestion("");
       setDuration("1");
       setUnit("days");
+      setOptions(["Yes", "No"]);
       onClose();
     } catch (error) {
       console.error("Failed to create voting:", error);
@@ -75,6 +103,7 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
     setQuestion("");
     setDuration("1");
     setUnit("days");
+    setOptions(["Yes", "No"]);
     onClose();
   };
 
@@ -184,6 +213,56 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
             )}
           </div>
 
+          <div className="form-control w-full">
+            <label className="label">
+              <span className="label-text font-semibold text-base flex items-center gap-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-primary"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                  <path
+                    fillRule="evenodd"
+                    d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Voting Options ({options.length}/16)
+              </span>
+            </label>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {options.map((option, index) => (
+                <div key={index} className="flex gap-2">
+                  <span className="flex items-center justify-center w-8 text-sm opacity-70">{index}.</span>
+                  <input
+                    type="text"
+                    className="input input-bordered flex-1 focus:input-primary transition-colors"
+                    placeholder={`Option ${index}`}
+                    value={option}
+                    onChange={e => updateOption(index, e.target.value)}
+                  />
+                  {options.length > 2 && (
+                    <button
+                      onClick={() => removeOption(index)}
+                      className="btn btn-ghost btn-square"
+                      disabled={isMining}
+                    >
+                      <TrashIcon className="h-5 w-5" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            {options.length < 16 && (
+              <button onClick={addOption} className="btn btn-outline btn-sm mt-2 gap-2" disabled={isMining}>
+                <PlusIcon className="h-4 w-4" />
+                Add Option
+              </button>
+            )}
+          </div>
+
           <div className="flex justify-end gap-3 pt-2">
             <button className="btn btn-ghost btn-lg" onClick={handleClose} disabled={isMining}>
               Cancel
@@ -191,7 +270,12 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
             <button
               className="btn btn-primary btn-lg min-w-[160px]"
               onClick={handleCreateVoting}
-              disabled={isMining || !question.trim() || durationInSeconds <= 0n}
+              disabled={
+                isMining ||
+                !question.trim() ||
+                durationInSeconds <= 0n ||
+                options.filter(opt => opt.trim() !== "").length < 2
+              }
             >
               {isMining ? (
                 <>

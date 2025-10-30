@@ -37,8 +37,8 @@ type GlobalState = {
   setCommitmentData: (data: CommitmentData | null) => void;
   proofData: ProofData | null;
   setProofData: (data: ProofData | null) => void;
-  voteChoice: boolean | null;
-  setVoteChoice: (choice: boolean | null) => void;
+  voteChoice: number | null;
+  setVoteChoice: (choice: number | null) => void;
 };
 
 export const useGlobalState = create<GlobalState>(set => ({
@@ -60,5 +60,5 @@ export const useGlobalState = create<GlobalState>(set => ({
   proofData: null,
   setProofData: (data: ProofData | null) => set(() => ({ proofData: data })),
   voteChoice: null,
-  setVoteChoice: (choice: boolean | null) => set(() => ({ voteChoice: choice })),
+  setVoteChoice: (choice: number | null) => set(() => ({ voteChoice: choice })),
 }));

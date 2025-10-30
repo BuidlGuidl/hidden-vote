@@ -11,25 +11,28 @@ export const VotingStats = ({ contractAddress }: { contractAddress?: `0x${string
     address: contractAddress,
   });
 
+  const { data: allVoteCounts } = useScaffoldReadContract({
+    contractName: "Voting",
+    functionName: "getAllVoteCounts",
+    address: contractAddress,
+  });
+
   // address owner,
   // string memory question,
-  // uint256 totalYesVotes,
-  // uint256 totalNoVotes,
+  // string[] memory options,
   // uint256 registrationDeadline
   const votingStatsArray = votingStats as unknown as any[];
+  const voteCountsArray = allVoteCounts as unknown as bigint[];
 
   const owner = votingStatsArray?.[0] as string;
   const question = votingStatsArray?.[1] as string;
-  const totalYesVotes = votingStatsArray?.[2] as bigint;
-  const totalNoVotes = votingStatsArray?.[3] as bigint;
-  const registrationDeadline = votingStatsArray?.[4] as bigint;
+  const options = votingStatsArray?.[2] as string[];
+  const registrationDeadline = votingStatsArray?.[3] as bigint;
 
   const q = (question as string | undefined) || undefined;
-  const yes = (totalYesVotes as bigint | undefined) ?? 0n;
-  const no = (totalNoVotes as bigint | undefined) ?? 0n;
-  const totalVotes = yes + no;
-  const yesPercentage = totalVotes > 0n ? Number((yes * 100n) / totalVotes) : 0;
-  const noPercentage = totalVotes > 0n ? Number((no * 100n) / totalVotes) : 0;
+  const opts = (options as string[] | undefined) || [];
+  const counts = (voteCountsArray as bigint[] | undefined) || [];
+  const totalVotes = counts.reduce((sum, count) => sum + (count ?? 0n), 0n);
 
   // Registration countdown (small and subtle)
   const [timeLeft, setTimeLeft] = useState<string>("");
@@ -75,6 +78,50 @@ export const VotingStats = ({ contractAddress }: { contractAddress?: `0x${string
     };
   }, [deadlineMs]);
 
+  const getColorForIndex = (index: number) => {
+    const colors = [
+      "text-success",
+      "text-error",
+      "text-info",
+      "text-warning",
+      "text-primary",
+      "text-secondary",
+      "text-accent",
+      "text-pink-500",
+      "text-purple-500",
+      "text-indigo-500",
+      "text-blue-500",
+      "text-cyan-500",
+      "text-teal-500",
+      "text-green-500",
+      "text-lime-500",
+      "text-orange-500",
+    ];
+    return colors[index % colors.length];
+  };
+
+  const getBgColorForIndex = (index: number) => {
+    const colors = [
+      "bg-success",
+      "bg-error",
+      "bg-info",
+      "bg-warning",
+      "bg-primary",
+      "bg-secondary",
+      "bg-accent",
+      "bg-pink-500",
+      "bg-purple-500",
+      "bg-indigo-500",
+      "bg-blue-500",
+      "bg-cyan-500",
+      "bg-teal-500",
+      "bg-green-500",
+      "bg-lime-500",
+      "bg-orange-500",
+    ];
+    return colors[index % colors.length];
+  };
+
   return (
     <div className="bg-base-100 shadow rounded-xl p-4 space-y-3">
       {timeLeft ? (
@@ -98,20 +145,29 @@ export const VotingStats = ({ contractAddress }: { contractAddress?: `0x${string
         </div>
         <span className="text-xs opacity-70">Total Votes: {totalVotes.toString()}</span>
       </div>
-      <div className="grid grid-cols-2 gap-2 text-center">
-        <div className="rounded-lg border border-base-300 p-3">
-          <div className="text-xs opacity-70">Yes</div>
-          <div className="text-xl font-bold text-success">{yes.toString()}</div>
-          <div className="text-xs opacity-70">{yesPercentage.toFixed(1)}%</div>
-        </div>
-        <div className="rounded-lg border border-base-300 p-3">
-          <div className="text-xs opacity-70">No</div>
-          <div className="text-xl font-bold text-error">{no.toString()}</div>
-          <div className="text-xs opacity-70">{noPercentage.toFixed(1)}%</div>
-        </div>
+      <div
+        className={`grid gap-2 text-center ${opts.length <= 2 ? "grid-cols-2" : opts.length <= 4 ? "grid-cols-2" : "grid-cols-3"}`}
+      >
+        {opts.map((option, index) => {
+          const count = counts[index] ?? 0n;
+          const percentage = totalVotes > 0n ? Number((count * 100n) / totalVotes) : 0;
+          return (
+            <div key={index} className="rounded-lg border border-base-300 p-3">
+              <div className="text-xs opacity-70 truncate" title={option}>
+                {index}. {option}
+              </div>
+              <div className={`text-xl font-bold ${getColorForIndex(index)}`}>{count.toString()}</div>
+              <div className="text-xs opacity-70">{percentage.toFixed(1)}%</div>
+            </div>
+          );
+        })}
       </div>
-      <div className="w-full bg-base-200 rounded-full h-2 overflow-hidden">
-        <div className="bg-success h-2" style={{ width: `${yesPercentage}%` }} />
+      <div className="w-full bg-base-200 rounded-full h-2 overflow-hidden flex">
+        {opts.map((_, index) => {
+          const count = counts[index] ?? 0n;
+          const percentage = totalVotes > 0n ? Number((count * 100n) / totalVotes) : 0;
+          return <div key={index} className={`h-2 ${getBgColorForIndex(index)}`} style={{ width: `${percentage}%` }} />;
+        })}
       </div>
     </div>
   );

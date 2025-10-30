@@ -6,7 +6,7 @@ export interface SerializableProofData {
   publicInputs: any[];
   timestamp: number;
   contractAddress?: string;
-  voteChoice?: boolean;
+  voteChoice?: number;
 }
 
 export interface CommitmentData {
@@ -35,7 +35,7 @@ export interface NestedUserData {
 }
 
 export interface VoteRecord {
-  voteChoice: boolean;
+  voteChoice: number;
   txHash: string;
   timestamp: number;
   contractAddress?: string;
@@ -129,7 +129,7 @@ const removeNestedField = (contractAddress?: string, userAddress?: string, field
 export const serializeProofData = (
   proofData: { proof: Uint8Array; publicInputs: any[] },
   contractAddress?: string,
-  voteChoice?: boolean,
+  voteChoice?: number,
 ): SerializableProofData => {
   return {
     proof: Array.from(proofData.proof), // Convert Uint8Array to number array
@@ -158,7 +158,7 @@ export const deserializeProofData = (
 export const saveProofToLocalStorage = (
   proofData: { proof: Uint8Array; publicInputs: any[] },
   contractAddress?: string,
-  voteChoice?: boolean,
+  voteChoice?: number,
   userAddress?: string,
 ): void => {
   try {
@@ -235,7 +235,7 @@ export const hasStoredProof = (contractAddress?: string, userAddress?: string): 
  * Save vote record to localStorage
  */
 export const saveVoteToLocalStorage = (
-  voteChoice: boolean,
+  voteChoice: number,
   txHash: string,
   contractAddress?: string,
   userAddress?: string,

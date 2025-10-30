@@ -479,20 +479,29 @@ export const CombinedVoteBurnerPaymaster = ({
         >
           {options.map((option, index) => {
             const isSelected = voteChoice === index || (hasStoredProofData && storedVoteChoice === index);
+            const baseStyle = selectionLocked ? { pointerEvents: "none" as const, cursor: "not-allowed" } : {};
+
             return (
               <button
                 key={index}
-                className={`btn btn-lg ${
-                  isSelected ? "btn-primary" : "btn-outline"
-                } ${!canVote && !hasStoredProofData ? "btn-disabled" : ""}`}
-                style={selectionLocked ? { pointerEvents: "none", cursor: "not-allowed" } : {}}
+                className={`
+                  w-full px-6 py-4 rounded-lg
+                  flex flex-col items-center justify-center
+                  transition-all duration-200 ease-in-out
+                  cursor-pointer
+                  ${
+                    isSelected
+                      ? "bg-primary text-primary-content shadow-md !border-0"
+                      : "bg-base-100 text-base-content hover:bg-base-200 !border !border-base-content/15"
+                  }
+                  ${!canVote && !hasStoredProofData ? "opacity-50 cursor-not-allowed" : ""}
+                `}
+                style={baseStyle}
                 onClick={canVote && !selectionLocked ? () => setVoteChoice(index) : undefined}
                 disabled={!canVote && !hasStoredProofData}
               >
-                <div className="flex flex-col items-center">
-                  <span className="text-xs opacity-70">Option {index + 1}</span>
-                  <span className="truncate max-w-full font-normal">{option}</span>
-                </div>
+                <span className="text-xs opacity-70 mb-1">Option {index + 1}</span>
+                <span className="truncate max-w-full">{option}</span>
               </button>
             );
           })}

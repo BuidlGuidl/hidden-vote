@@ -264,7 +264,7 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
             {options.length < 16 && (
               <button
                 onClick={addOption}
-                className="btn btn-outline btn-primary w-full mt-3 gap-2 text-base"
+                className="btn btn-sm btn-outline btn-primary w-full mt-3 gap-2 text-sm"
                 disabled={isMining}
               >
                 <PlusIcon className="h-5 w-5" />

@@ -10,6 +10,12 @@ const LandingPage: NextPage = () => {
     <div className="min-h-screen">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-slate-900">
+        <div
+          className="absolute inset-0 size-full opacity-70 mix-blend-overlay dark:md:opacity-100"
+          style={{
+            background: "url(/noise.webp) lightgray 0% 0% / 83.69069695472717px 83.69069695472717px repeat",
+          }}
+        ></div>
         {/* Hero Background SVG */}
         <div className="absolute inset-x-[-50vw] -top-32 -bottom-48 opacity-40 lg:opacity-60 rotate-12 scale-150 lg:right-0 lg:left-auto lg:w-1/2">
           <HeroBackground className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 lg:left-0 lg:translate-x-[30%] lg:translate-y-[-60%]" />

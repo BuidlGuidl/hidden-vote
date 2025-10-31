@@ -5,7 +5,13 @@ import Papa from "papaparse";
 import { normalize } from "viem/ens";
 import { useAccount, useConfig } from "wagmi";
 import { getEnsAddress, getEnsName } from "wagmi/actions";
-import { DocumentTextIcon, PlusIcon, TrashIcon, UserPlusIcon } from "@heroicons/react/24/outline";
+import {
+  DocumentTextIcon,
+  InformationCircleIcon,
+  PlusIcon,
+  TrashIcon,
+  UserPlusIcon,
+} from "@heroicons/react/24/outline";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import { notification } from "~~/utils/scaffold-eth";
 
@@ -376,13 +382,16 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
           </label>
 
           <div className="space-y-4">
-            <p className="text-sm opacity-70">
-              Add addresses that are allowed to vote. Supports Ethereum addresses and ENS names (like phipsae.eth). For
-              CSV imports, use format: address,true/false (true = allow, false = revoke).
-            </p>
-
             <div className="flex items-center justify-between p-3 bg-base-200 rounded-lg">
-              <span className="text-sm font-medium">Default status for addresses:</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Default permission:</span>
+                <div
+                  className="tooltip tooltip-right before:!max-w-[280px] before:!rounded-none before:!text-left before:!whitespace-normal before:!p-3"
+                  data-tip="Set whether new addresses can vote or are revoked. You can change individual permissions later."
+                >
+                  <InformationCircleIcon className="h-5 w-5 text-base-content/50 hover:text-primary cursor-help transition-colors" />
+                </div>
+              </div>
               <div className="flex items-center gap-3">
                 <label className="label cursor-pointer gap-2">
                   <span className="label-text text-sm">Allow</span>
@@ -408,7 +417,15 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Paste voter addresses or ENS names</label>
+              <div className="flex items-center gap-2 mb-2 px-3">
+                <label className="text-sm font-medium">Paste voter addresses or ENS names</label>
+                <div
+                  className="tooltip tooltip-right before:!max-w-[280px] before:!rounded-none before:!text-left before:!whitespace-normal before:!p-3"
+                  data-tip="Supports Ethereum addresses (0x...) and ENS names (phipsae.eth). Separate with newlines or commas. ENS names will be automatically resolved."
+                >
+                  <InformationCircleIcon className="h-5 w-5 text-base-content/50 hover:text-primary cursor-help transition-colors" />
+                </div>
+              </div>
               <textarea
                 value={bulkAddresses}
                 onChange={e => setBulkAddresses(e.target.value)}
@@ -416,9 +433,6 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
                 rows={5}
                 className="w-full px-4 py-3 border border-base-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all font-mono text-sm"
               />
-              <p className="text-xs opacity-60 mt-1">
-                One address or ENS name per line, or comma-separated. ENS names will be automatically resolved.
-              </p>
             </div>
 
             <div className="flex gap-2">
@@ -426,11 +440,16 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
                 <PlusIcon className="w-4 h-4" />
                 Add to List
               </button>
-              <label className="btn btn-sm btn-outline gap-2">
-                <DocumentTextIcon className="w-4 h-4" />
-                Import File
-                <input type="file" accept=".csv,.json" onChange={handleFileImport} className="hidden" />
-              </label>
+              <div
+                className="tooltip tooltip-right before:!max-w-[280px] before:!rounded-none before:!text-left before:!whitespace-pre-line before:!p-3"
+                data-tip="Import CSV file with 2 columns:&#10; Address (e.g., 0x123...) and Status (true or false)"
+              >
+                <label className="btn btn-sm btn-outline gap-2">
+                  <DocumentTextIcon className="w-4 h-4" />
+                  Import File
+                  <input type="file" accept=".csv,.json" onChange={handleFileImport} className="hidden" />
+                </label>
+              </div>
             </div>
 
             {voters.length > 0 && (

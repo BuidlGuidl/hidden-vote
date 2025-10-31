@@ -1,30 +1,64 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { NextPage } from "next";
+import { HeroBackground } from "~~/components/HeroBackground";
 
 const LandingPage: NextPage = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-base-100 via-base-200 to-base-300">
-        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+      <div className="relative overflow-hidden bg-slate-900">
+        {/* Hero Background SVG */}
+        <div className="absolute inset-x-[-50vw] -top-32 -bottom-48 opacity-40 lg:opacity-60 rotate-12 scale-150 lg:right-0 lg:left-auto lg:w-1/2">
+          <HeroBackground className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 lg:left-0 lg:translate-x-[30%] lg:translate-y-[-60%]" />
+        </div>
+
         <div className="relative max-w-6xl mx-auto px-8 py-20 md:py-32">
           <div className="text-center space-y-8">
+            {/* Background Images */}
+            <Image
+              className="absolute right-full bottom-full -mr-72 -mb-56 opacity-50"
+              src="/blur-cyan.png"
+              alt=""
+              width={530}
+              height={530}
+              priority
+            />
+            <Image
+              className="absolute -top-64 -right-64"
+              src="/blur-cyan.png"
+              alt=""
+              width={530}
+              height={530}
+              unoptimized
+              priority
+            />
+            <Image
+              className="absolute -right-24 bottom-16"
+              src="/blur-indigo.png"
+              alt=""
+              width={567}
+              height={567}
+              unoptimized
+              priority
+            />
+
             {/* Main Heading */}
-            <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold leading-tight">
+            <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold leading-tight relative">
               <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                 Hidden Vote
               </span>
             </h1>
 
             {/* Subtitle */}
-            <p className="text-2xl md:text-3xl opacity-80 max-w-3xl mx-auto font-light">
+            <p className="text-2xl md:text-3xl max-w-3xl mx-auto font-light text-white">
               Private voting powered by Zero-Knowledge Proofs
             </p>
 
             {/* Description */}
-            <p className="text-lg md:text-xl opacity-70 max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl max-w-2xl mx-auto text-gray-200">
               Create secure voting sessions where individual votes remain completely private while results stay
               verifiable and transparent on the blockchain.
             </p>

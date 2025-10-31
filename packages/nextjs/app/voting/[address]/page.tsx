@@ -141,7 +141,7 @@ export default function VotingByAddressPage() {
   return (
     <div className="flex items-center justify-center flex-col grow pt-6 w-full">
       <div className="px-4 sm:px-5 w-full max-w-7xl mx-auto">
-        <Link href="/" className="btn btn-sm btn-ghost gap-2 mb-4">
+        <Link href="/votings" className="btn btn-sm btn-ghost gap-2 mb-4">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"

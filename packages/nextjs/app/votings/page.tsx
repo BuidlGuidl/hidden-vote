@@ -18,7 +18,7 @@ const VotingsPage: NextPage = () => {
 
   return (
     <div className="min-h-full">
-      <div className="relative bg-slate-900 pb-24 lg:pb-48">
+      <div className="relative overflow-hidden bg-slate-900 pb-24 lg:pb-48">
         <div
           className="absolute inset-0 size-full opacity-70 mix-blend-overlay dark:md:opacity-100"
           style={{

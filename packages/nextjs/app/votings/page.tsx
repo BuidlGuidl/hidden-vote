@@ -53,7 +53,7 @@ const VotingsPage: NextPage = () => {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`rounded-md px-3 py-2 text-sm font-medium cursor-pointer whitespace-nowrap text-primary-content ${
-                      activeTab === tab.id ? "bg-primary" : "hover:bg-indigo-500/75 dark:hover:bg-indigo-700/75"
+                      activeTab === tab.id ? "bg-secondary" : "hover:bg-secondary/75 dark:hover:bg-secondary/75"
                     }`}
                   >
                     {tab.label}
@@ -63,7 +63,7 @@ const VotingsPage: NextPage = () => {
 
               {/* Create Button */}
               <button
-                className="hidden sm:block btn btn-secondary whitespace-nowrap"
+                className="hidden sm:block btn btn-accent btn-outline whitespace-nowrap"
                 onClick={() => setIsModalOpen(true)}
               >
                 <svg
@@ -88,7 +88,7 @@ const VotingsPage: NextPage = () => {
             <div className="p-6 w-full">
               <VotingOverview activeTab={activeTab} />
               <button
-                className="sm:hidden mt-6 btn btn-secondary whitespace-nowrap"
+                className="sm:hidden mt-6 btn btn-primary btn-outline whitespace-nowrap"
                 onClick={() => setIsModalOpen(true)}
               >
                 <svg

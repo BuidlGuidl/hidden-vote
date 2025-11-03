@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import CreateVotingModal from "../_components/CreateVotingModal";
 import VotingOverview from "../_components/VotingOverview";
 import { NextPage } from "next";
@@ -17,7 +18,30 @@ const VotingsPage: NextPage = () => {
 
   return (
     <div className="min-h-full">
-      <div className="bg-primary pb-24 lg:pb-32">
+      <div className="relative bg-slate-900 pb-24 lg:pb-48">
+        <div
+          className="absolute inset-0 size-full opacity-70 mix-blend-overlay dark:md:opacity-100"
+          style={{
+            background: "url(/noise.webp) lightgray 0% 0% / 83.69069695472717px 83.69069695472717px repeat",
+          }}
+        ></div>
+        <Image className="absolute top-0 opacity-50" src="/blur-cyan.png" alt="" width={530} height={530} />
+        <Image
+          className="absolute -top-64 -right-32"
+          src="/blur-cyan.png"
+          alt=""
+          width={530}
+          height={530}
+          unoptimized
+        />
+        <Image
+          className="absolute -right-12 bottom-24"
+          src="/blur-indigo.png"
+          alt=""
+          width={567}
+          height={567}
+          unoptimized
+        />
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
           <div className="relative w-full flex items-center py-5 lg:pt-12">
             {/* Right section */}
@@ -28,10 +52,8 @@ const VotingsPage: NextPage = () => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`rounded-md px-3 py-2 text-sm font-medium cursor-pointer whitespace-nowrap ${
-                      activeTab === tab.id
-                        ? "text-white bg-secondary/75"
-                        : "text-indigo-100 hover:bg-indigo-500/75 dark:hover:bg-indigo-700/75"
+                    className={`rounded-md px-3 py-2 text-sm font-medium cursor-pointer whitespace-nowrap text-primary-content ${
+                      activeTab === tab.id ? "bg-primary" : "hover:bg-indigo-500/75 dark:hover:bg-indigo-700/75"
                     }`}
                   >
                     {tab.label}
@@ -60,7 +82,7 @@ const VotingsPage: NextPage = () => {
         </div>
       </div>
 
-      <main className="-mt-24 lg:-mt-28 pb-8">
+      <main className="relative z-10 -mt-24 lg:-mt-44 pb-8">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
           <div className="overflow-hidden min-h-48 flex items-center justify-center rounded-lg bg-white shadow dark:bg-gray-800 dark:shadow-none dark:outline dark:outline-1 dark:-outline-offset-1 dark:outline-white/10">
             <div className="p-6 w-full">

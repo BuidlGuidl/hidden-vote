@@ -35,10 +35,7 @@ const VotingOverview = ({ onCreateClick }: VotingOverviewProps) => {
           ))}
         </div>
 
-        <button
-          className="btn btn-primary gap-2 shadow-lg hover:scale-105 transition-transform"
-          onClick={onCreateClick}
-        >
+        <button className="btn btn-primary" onClick={onCreateClick}>
           <svg
             className="w-6 h-6"
             fill="none"

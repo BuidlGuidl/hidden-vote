@@ -109,24 +109,27 @@ export const VotingStats = ({ contractAddress }: { contractAddress?: `0x${string
     };
   }, [votingEndMs]);
 
+  // Determine which phase we're in
+  const now = Date.now();
+  const isRegistrationPhase = registrationDeadline && now < Number(registrationDeadline) * 1000;
+  const isVotingPhase =
+    registrationDeadline &&
+    votingEndTime &&
+    now >= Number(registrationDeadline) * 1000 &&
+    now < Number(votingEndTime) * 1000;
+  const isVotingClosed = votingEndTime && now >= Number(votingEndTime) * 1000;
+
   return (
     <div className="bg-base-100 shadow rounded-xl p-4 space-y-3">
-      {(timeLeft || votingTimeLeft) && (
-        <div className="flex justify-end gap-2">
-          {timeLeft && (
-            <span
-              className={`badge badge-sm ${timeLeft === "Registration closed" ? "badge-warning" : "badge-primary"}`}
-            >
-              {timeLeft === "Registration closed" ? "Registration closed" : `Reg closes in ${timeLeft}`}
-            </span>
-          )}
-          {votingTimeLeft && (
-            <span className={`badge badge-sm ${votingTimeLeft === "Voting closed" ? "badge-error" : "badge-success"}`}>
-              {votingTimeLeft === "Voting closed" ? "Voting closed" : `Voting ends in ${votingTimeLeft}`}
-            </span>
-          )}
-        </div>
-      )}
+      <div className="flex justify-end">
+        {isRegistrationPhase && timeLeft && timeLeft !== "Registration closed" && (
+          <span className="badge badge-primary badge-sm">Registration closes in {timeLeft}</span>
+        )}
+        {isVotingPhase && votingTimeLeft && votingTimeLeft !== "Voting closed" && (
+          <span className="badge badge-success badge-sm">Voting ends in {votingTimeLeft}</span>
+        )}
+        {isVotingClosed && <span className="badge badge-error badge-sm">Voting closed</span>}
+      </div>
       <div className="text-center">
         <h2 className="text-2xl font-bold">{q || "Loading..."}</h2>
         <div className="flex justify-center gap-10">
@@ -137,7 +140,39 @@ export const VotingStats = ({ contractAddress }: { contractAddress?: `0x${string
             Owner: <Address address={owner as `0x${string}`} />
           </div>
         </div>
-        <span className="text-xs opacity-70">Total Votes: {totalVotes.toString()}</span>
+
+        {(registrationDeadline || votingEndTime) && (
+          <div className="mt-3 flex justify-center gap-6 text-sm">
+            {registrationDeadline && (
+              <div className="flex flex-col">
+                <span className="opacity-50 text-xs">Registration Closes</span>
+                <span className="font-medium">
+                  {new Date(Number(registrationDeadline) * 1000).toLocaleString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+            )}
+            {votingEndTime && (
+              <div className="flex flex-col">
+                <span className="opacity-50 text-xs">Voting Closes</span>
+                <span className="font-medium">
+                  {new Date(Number(votingEndTime) * 1000).toLocaleString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        <span className="text-xs opacity-70 block mt-2">Total Votes: {totalVotes.toString()}</span>
       </div>
       <div
         className={`grid gap-2 text-center ${opts.length <= 2 ? "grid-cols-2" : opts.length <= 4 ? "grid-cols-2" : "grid-cols-3"}`}

@@ -87,7 +87,16 @@ export default function VotingByAddressPage() {
   });
 
   const votingDataArray = votingData as unknown as any[];
+  const isVoter = votingDataArray?.[3] as boolean;
   const hasRegistered = votingDataArray?.[4] as boolean;
+  const registrationDeadline = votingDataArray?.[5] as bigint;
+  const votingEndTime = votingDataArray?.[6] as bigint;
+
+  // Check if voting is still open
+  const now = Math.floor(Date.now() / 1000);
+  const isRegistrationOpen = registrationDeadline && now <= Number(registrationDeadline);
+  const isVotingOpen =
+    registrationDeadline && votingEndTime && now > Number(registrationDeadline) && now <= Number(votingEndTime);
 
   const { data } = useQuery({
     queryKey: ["leavess", address, chain?.id],
@@ -192,17 +201,45 @@ export default function VotingByAddressPage() {
                   </button>
                 </div>
               )}
-              <div className="flex flex-wrap gap-2 justify-between">
-                {address && <AddVotersModal contractAddress={address} />}
-                <div className="flex items-center gap-2">
+              <div className="flex flex-wrap gap-2">
+                {address && isRegistrationOpen && <AddVotersModal contractAddress={address} />}
+                <div className="flex items-center gap-2 ml-auto">
                   {address && <ShowVotersModal contractAddress={address} />}
                 </div>
               </div>
               <VotingStats contractAddress={address} />
 
-              {!hasRegistered && <CreateCommitment leafEvents={leavesEvents} contractAddress={address} />}
+              {/* Only show registration component if user is on the allowlist and hasn't registered */}
+              {isVoter === true && !hasRegistered && isRegistrationOpen && (
+                <CreateCommitment leafEvents={leavesEvents} contractAddress={address} />
+              )}
 
-              {hasRegistered && <CombinedVoteBurnerPaymaster contractAddress={address} leafEvents={leavesEvents} />}
+              {/* Only show voting component if user is on the allowlist, has registered, and voting is still open */}
+              {isVoter === true && hasRegistered && isVotingOpen && (
+                <CombinedVoteBurnerPaymaster contractAddress={address} leafEvents={leavesEvents} />
+              )}
+
+              {/* Show message if user is not on the allowlist */}
+              {userAddress && isVoter === false && (
+                <div className="alert alert-info">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    className="stroke-current shrink-0 w-6 h-6"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <span>
+                    You are not on the allowlist for this vote. Only approved addresses can register and vote.
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         )}

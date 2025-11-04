@@ -142,78 +142,83 @@ export default function VotingByAddressPage() {
   return (
     <>
       <AccentWrapper>
-        <div className="relative z-10 py-8 px-6 lg:py-12 max-w-7xl mx-auto">
-          <Link href="/votings" className="btn btn-sm gap-2 mb-4">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-4 h-4"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-            </svg>
-            Back to Votings
-          </Link>
-        </div>
+        <div className="py-10 lg:py-16"></div>
       </AccentWrapper>
       <div className="relative z-10 -mt-36 lg:-mt-64 mb-24">
-        <div className="px-4 sm:px-5 w-full max-w-7xl mx-auto">
-          {!enabled ? (
-            <div className="mt-6 text-sm opacity-70 text-center">No voting address in URL.</div>
-          ) : (
-            <div className="flex flex-col items-center w-full">
-              <div className="w-full max-w-3xl mt-8">
-                <div className="bg-base-100 shadow rounded-xl p-6 space-y-4">
-                  {showSwitchToBase && (
-                    <div className="alert alert-warning flex items-center justify-between">
-                      <span>
-                        This voting is deployed on Base, but your wallet is connected to Mainnet.
-                        <br />
-                        Please switch to Base to interact with this voting.
-                      </span>
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-primary"
-                        onClick={() => switchChain?.({ chainId: base.id })}
-                      >
-                        Switch to Base
-                      </button>
-                    </div>
-                  )}
+        <div className="px-4 sm:px-5 w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-6 gap-4">
+          <div>
+            <Link href="/votings" className="btn btn-sm gap-2 flex-shrink-0">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-4 h-4"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+              Back to Votings
+            </Link>
+          </div>
+          <div className="lg:col-span-4">
+            {!enabled ? (
+              <div className="mt-6 text-sm opacity-70 text-center">No voting address in URL.</div>
+            ) : (
+              <div className="flex flex-col items-center w-full">
+                <div className="w-full max-w-3xl">
+                  <div className="bg-base-100 shadow rounded-xl p-6 space-y-4">
+                    {showSwitchToBase && (
+                      <div className="alert alert-warning flex items-center justify-between">
+                        <span>
+                          This voting is deployed on Base, but your wallet is connected to Mainnet.
+                          <br />
+                          Please switch to Base to interact with this voting.
+                        </span>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-primary"
+                          onClick={() => switchChain?.({ chainId: base.id })}
+                        >
+                          Switch to Base
+                        </button>
+                      </div>
+                    )}
 
-                  {showSwitchToMainnet && (
-                    <div className="alert alert-warning flex items-center justify-between">
-                      <span>
-                        This voting is deployed on Mainnet, but your wallet is connected to Base.
-                        <br />
-                        Please switch to Mainnet to interact with this voting.
-                      </span>
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-primary"
-                        onClick={() => switchChain?.({ chainId: mainnet.id })}
-                      >
-                        Switch to Mainnet
-                      </button>
+                    {showSwitchToMainnet && (
+                      <div className="alert alert-warning flex items-center justify-between">
+                        <span>
+                          This voting is deployed on Mainnet, but your wallet is connected to Base.
+                          <br />
+                          Please switch to Mainnet to interact with this voting.
+                        </span>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-primary"
+                          onClick={() => switchChain?.({ chainId: mainnet.id })}
+                        >
+                          Switch to Mainnet
+                        </button>
+                      </div>
+                    )}
+                    <div className="flex flex-wrap gap-2 justify-between">
+                      {address && <AddVotersModal contractAddress={address} />}
+                      <div className="flex items-center gap-2">
+                        {address && <ShowVotersModal contractAddress={address} />}
+                      </div>
                     </div>
-                  )}
-                  <div className="flex flex-wrap gap-2 justify-between">
-                    {address && <AddVotersModal contractAddress={address} />}
-                    <div className="flex items-center gap-2">
-                      {address && <ShowVotersModal contractAddress={address} />}
-                    </div>
+                    <VotingStats contractAddress={address} />
+
+                    {!hasRegistered && <CreateCommitment leafEvents={leavesEvents} contractAddress={address} />}
+
+                    {hasRegistered && (
+                      <CombinedVoteBurnerPaymaster contractAddress={address} leafEvents={leavesEvents} />
+                    )}
                   </div>
-                  <VotingStats contractAddress={address} />
-
-                  {!hasRegistered && <CreateCommitment leafEvents={leavesEvents} contractAddress={address} />}
-
-                  {hasRegistered && <CombinedVoteBurnerPaymaster contractAddress={address} leafEvents={leavesEvents} />}
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </>

@@ -18,7 +18,7 @@ const VotingOverview = ({ activeTab }: VotingOverviewProps) => {
   const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || ListVotings;
 
   return (
-    <div className="w-full max-h-[calc(3*280px+2*1rem)] overflow-y-auto pr-2">
+    <div className="w-full">
       <ActiveComponent />
     </div>
   );

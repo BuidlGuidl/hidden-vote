@@ -44,14 +44,14 @@ const LandingPage: NextPage = () => {
         <div className="relative z-10 max-w-6xl mx-auto px-8 py-20 md:py-32">
           <div className="text-center space-y-8">
             {/* Main Heading */}
-            <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold leading-tight relative">
-              <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold leading-tight relative font-display">
+              <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text font-display text-transparent">
                 Hidden Vote
               </span>
             </h1>
 
             {/* Subtitle */}
-            <p className="text-2xl md:text-3xl max-w-3xl mx-auto font-light text-white">
+            <p className="text-2xl md:text-3xl max-w-3xl mx-auto text-white font-display">
               Private voting powered by Zero-Knowledge Proofs
             </p>
 
@@ -85,7 +85,7 @@ const LandingPage: NextPage = () => {
 
       {/* Features Section */}
       <div className="max-w-6xl mx-auto px-8 py-32 lg:py-48">
-        <h2 className="text-4xl md:text-5xl font-bold text-center mb-16">Why Hidden Vote?</h2>
+        <h2 className="text-4xl md:text-5xl font-bold text-center mb-16 font-display">Why Hidden Vote?</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Feature 1 */}
@@ -107,7 +107,7 @@ const LandingPage: NextPage = () => {
                   />
                 </svg>
               </div>
-              <h3 className="card-title text-2xl">Complete Privacy</h3>
+              <h3 className="card-title text-2xl font-display">Complete Privacy</h3>
               <p className="m-0 opacity-70">
                 Your vote remains encrypted and anonymous. Zero-knowledge proofs ensure nobody can see how you voted.
               </p>
@@ -133,7 +133,7 @@ const LandingPage: NextPage = () => {
                   />
                 </svg>
               </div>
-              <h3 className="card-title text-2xl">Blockchain Verified</h3>
+              <h3 className="card-title text-2xl font-display">Blockchain Verified</h3>
               <p className="m-0 opacity-70">
                 All votes and results are cryptographically secured and permanently recorded on the blockchain.
               </p>
@@ -155,7 +155,7 @@ const LandingPage: NextPage = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
               </div>
-              <h3 className="card-title text-2xl">Transparent Results</h3>
+              <h3 className="card-title text-2xl font-display">Transparent Results</h3>
               <p className="m-0 opacity-70">
                 Vote counts are publicly verifiable while maintaining individual voter anonymity.
               </p>
@@ -191,7 +191,7 @@ const LandingPage: NextPage = () => {
             unoptimized
           />
           <div className="relative z-10 max-w-6xl mx-auto">
-            <h2 className="text-4xl text-white md:text-5xl font-bold text-center mb-16">How It Works</h2>
+            <h2 className="text-4xl text-white md:text-5xl font-bold text-center mb-16 font-display">How It Works</h2>
 
             <div className="space-y-12 text-gray-100">
               {/* Step 1 */}
@@ -200,7 +200,7 @@ const LandingPage: NextPage = () => {
                   1
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-bold mb-2">Create a Voting Session</h3>
+                  <h3 className="text-2xl font-bold font-display">Create a Voting Session</h3>
                   <p className="text-lg opacity-70 mb-0">
                     Set up your question with up to 16 choices, and configure registration and voting periods.
                   </p>
@@ -213,7 +213,7 @@ const LandingPage: NextPage = () => {
                   2
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-bold mb-2">Register to Vote</h3>
+                  <h3 className="text-2xl font-bold font-display">Register to Vote</h3>
                   <p className="text-lg opacity-70 mb-0">
                     During the registration period, eligible voters register to join the voting session. This builds the
                     anonymity set that protects voter privacy when voting begins.
@@ -227,7 +227,7 @@ const LandingPage: NextPage = () => {
                   3
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-bold mb-2">Cast Your Vote</h3>
+                  <h3 className="text-2xl font-bold font-display">Cast Your Vote</h3>
                   <p className="text-lg opacity-70 mb-0">
                     Submit your encrypted vote during the voting period using zero-knowledge proofs to maintain privacy.
                   </p>
@@ -240,7 +240,7 @@ const LandingPage: NextPage = () => {
                   4
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-bold mb-2">View Results</h3>
+                  <h3 className="text-2xl font-bold font-display">View Results</h3>
                   <p className="text-lg opacity-70 mb-0">
                     Once voting ends, results are tallied and publicly displayed while individual votes remain private.
                   </p>
@@ -253,7 +253,7 @@ const LandingPage: NextPage = () => {
 
       {/* CTA Section */}
       <div className="max-w-6xl mx-auto px-8 py-32 lg:py-48 text-center">
-        <h2 className="text-4xl md:text-5xl font-bold mb-8">Ready to Get Started?</h2>
+        <h2 className="text-4xl md:text-5xl font-bold mb-8 font-display">Ready to Get Started?</h2>
         <p className="text-xl opacity-70 mb-12 max-w-2xl mx-auto">
           Experience the future of private, secure, and transparent voting on the blockchain.
         </p>

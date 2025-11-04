@@ -16,9 +16,9 @@ export const Header = () => {
         <div className="flex items-center gap-3">
           <Link href="/" passHref className="flex items-center gap-3 shrink-0">
             <div className="flex relative w-10 h-10">
-              <Image alt="Hidden Vote logo" className="cursor-pointer" fill src="/logo-1.svg" />
+              <Image alt="Hidden Vote logo" className="cursor-pointer" fill src="/logo-black.svg" />
             </div>
-            <span className="font-bold text-xl bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            <span className="font-bold text-xl bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent font-display">
               Hidden Vote
             </span>
           </Link>

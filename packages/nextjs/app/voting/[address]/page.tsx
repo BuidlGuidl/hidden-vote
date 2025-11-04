@@ -139,7 +139,7 @@ export default function VotingByAddressPage() {
   );
 
   return (
-    <div className="flex items-center justify-center flex-col grow pt-6 w-full">
+    <div className="mt-12 mb-24">
       <div className="px-4 sm:px-5 w-full max-w-7xl mx-auto">
         <Link href="/votings" className="btn btn-sm btn-ghost gap-2 mb-4">
           <svg
@@ -152,7 +152,7 @@ export default function VotingByAddressPage() {
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
           </svg>
-          Back to Home
+          Back to Votings
         </Link>
         {!enabled ? (
           <div className="mt-6 text-sm opacity-70 text-center">No voting address in URL.</div>

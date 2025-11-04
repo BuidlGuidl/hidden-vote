@@ -44,14 +44,15 @@ const LandingPage: NextPage = () => {
         <div className="relative z-10 max-w-6xl mx-auto px-8 py-20 md:py-32">
           <div className="text-center space-y-8">
             {/* Main Heading */}
-            <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold leading-tight relative font-display">
+            <Image className="mx-auto w-28" src="/logo-color.svg" alt="Hidden Vote Logo" width={451} height={311} />
+            <h1 className="mb-0 text-6xl md:text-7xl font-bold leading-tight tracking-tight relative font-display">
               <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text font-display text-transparent">
                 Hidden Vote
               </span>
             </h1>
 
             {/* Subtitle */}
-            <p className="text-2xl md:text-3xl max-w-3xl mx-auto text-white font-display">
+            <p className="text-2xl md:text-3xl max-w-3xl mx-auto text-white font-display tracking-tight">
               Private voting powered by Zero-Knowledge Proofs
             </p>
 
@@ -62,7 +63,7 @@ const LandingPage: NextPage = () => {
             </p>
 
             {/* CTA Button */}
-            <div className="pt-8">
+            <div className="pt-6">
               <Link
                 href="/votings"
                 className="btn btn-primary btn-lg gap-2 shadow-2xl hover:scale-105 transition-transform"
@@ -85,7 +86,9 @@ const LandingPage: NextPage = () => {
 
       {/* Features Section */}
       <div className="max-w-6xl mx-auto px-8 py-32 lg:py-48">
-        <h2 className="text-4xl md:text-5xl font-bold text-center mb-16 font-display">Why Hidden Vote?</h2>
+        <h2 className="text-4xl md:text-5xl font-bold text-center mb-16 font-display tracking-tight">
+          Why Hidden Vote?
+        </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Feature 1 */}
@@ -191,7 +194,9 @@ const LandingPage: NextPage = () => {
             unoptimized
           />
           <div className="relative z-10 max-w-6xl mx-auto">
-            <h2 className="text-4xl text-white md:text-5xl font-bold text-center mb-16 font-display">How It Works</h2>
+            <h2 className="text-4xl text-white md:text-5xl font-bold text-center mb-16 font-display tracking-tight">
+              How It Works
+            </h2>
 
             <div className="space-y-12 text-gray-100">
               {/* Step 1 */}
@@ -253,7 +258,7 @@ const LandingPage: NextPage = () => {
 
       {/* CTA Section */}
       <div className="max-w-6xl mx-auto px-8 py-32 lg:py-48 text-center">
-        <h2 className="text-4xl md:text-5xl font-bold mb-8 font-display">Ready to Get Started?</h2>
+        <h2 className="text-4xl md:text-5xl font-bold mb-8 font-display tracking-tight">Ready to Get Started?</h2>
         <p className="text-xl opacity-70 mb-12 max-w-2xl mx-auto">
           Experience the future of private, secure, and transparent voting on the blockchain.
         </p>

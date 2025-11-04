@@ -26,13 +26,17 @@ contract VotingFactory {
 
     /// @notice Creates a new Voting instance
     /// @param _question The human-readable question for this vote
+    /// @param _registrationDeadline Unix timestamp when registration period ends
+    /// @param _votingEndTime Unix timestamp when voting period ends
     /// @param _options Array of option names (2-16 options)
     /// @return voting The address of the newly created Voting contract
-    function createVoting(string calldata _question, uint256 _registrationDuration, string[] calldata _options)
-        external
-        returns (address voting)
-    {
-        Voting instance = new Voting(verifier, _question, _registrationDuration, _options);
+    function createVoting(
+        string calldata _question,
+        uint256 _registrationDeadline,
+        uint256 _votingEndTime,
+        string[] calldata _options
+    ) external returns (address voting) {
+        Voting instance = new Voting(verifier, _question, _registrationDeadline, _votingEndTime, _options);
 
         instance.transferOwnership(msg.sender);
 

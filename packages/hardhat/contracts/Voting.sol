@@ -12,6 +12,7 @@ contract Voting is Ownable {
     IVerifier public immutable i_verifier;
     string public s_question;
     uint256 public immutable i_registrationDeadline;
+    uint256 public immutable i_votingEndTime;
     string[] public s_options;
 
     // so that not 2 times the same commitment can be inserted
@@ -37,16 +38,41 @@ contract Voting is Ownable {
     error Voting__RegistrationPeriodOver();
     error Voting__InvalidOptionCount();
     error Voting__InvalidOptionIndex();
+    error Voting__VotingPeriodOver();
+    error Voting__VotingEndTimeMustBeAfterRegistration();
+    error Voting__RegistrationDeadlineMustBeInFuture();
+    error Voting__VotingEndTimeMustBeInFuture();
 
-    constructor(IVerifier _verifier, string memory _question, uint256 _registrationDuration, string[] memory _options)
-        Ownable(msg.sender)
-    {
+    constructor(
+        IVerifier _verifier,
+        string memory _question,
+        uint256 _registrationDeadline,
+        uint256 _votingEndTime,
+        string[] memory _options
+    ) Ownable(msg.sender) {
         if (_options.length < 2 || _options.length > 16) {
             revert Voting__InvalidOptionCount();
         }
+
+        // Validate registration deadline is in the future
+        if (_registrationDeadline <= block.timestamp) {
+            revert Voting__RegistrationDeadlineMustBeInFuture();
+        }
+
+        // Validate voting end time is in the future
+        if (_votingEndTime <= block.timestamp) {
+            revert Voting__VotingEndTimeMustBeInFuture();
+        }
+
+        // Ensure voting end time is after registration deadline
+        if (_votingEndTime <= _registrationDeadline) {
+            revert Voting__VotingEndTimeMustBeAfterRegistration();
+        }
+
         i_verifier = _verifier;
         s_question = _question;
-        i_registrationDeadline = _registrationDuration + block.timestamp;
+        i_registrationDeadline = _registrationDeadline;
+        i_votingEndTime = _votingEndTime;
         s_options = _options;
     }
 
@@ -83,6 +109,9 @@ contract Voting is Ownable {
     function vote(bytes memory _proof, bytes32 _root, bytes32 _nullifierHash, bytes32 _vote, bytes32 _depth) public {
         if (block.timestamp <= i_registrationDeadline) {
             revert Voting__RegistrationPeriodNotOver();
+        }
+        if (block.timestamp > i_votingEndTime) {
+            revert Voting__VotingPeriodOver();
         }
         if (s_nullifierHashes[_nullifierHash]) {
             revert Voting__NullifierHashAlreadyUsed(_nullifierHash);
@@ -150,20 +179,33 @@ contract Voting is Ownable {
             uint256 treeRoot,
             bool isVoterStatus,
             bool hasRegisteredStatus,
-            uint256 registrationDeadline
+            uint256 registrationDeadline,
+            uint256 votingEndTime
         )
     {
         return (
-            s_tree.size, s_tree.depth, s_tree.root(), s_voters[_voter], s_hasRegistered[_voter], i_registrationDeadline
+            s_tree.size,
+            s_tree.depth,
+            s_tree.root(),
+            s_voters[_voter],
+            s_hasRegistered[_voter],
+            i_registrationDeadline,
+            i_votingEndTime
         );
     }
 
     function getVotingStats()
         public
         view
-        returns (address contractOwner, string memory question, string[] memory options, uint256 registrationDeadline)
+        returns (
+            address contractOwner,
+            string memory question,
+            string[] memory options,
+            uint256 registrationDeadline,
+            uint256 votingEndTime
+        )
     {
-        return (owner(), s_question, s_options, i_registrationDeadline);
+        return (owner(), s_question, s_options, i_registrationDeadline, i_votingEndTime);
     }
 
     function getOptionVoteCount(uint256 optionIndex) public view returns (uint256) {

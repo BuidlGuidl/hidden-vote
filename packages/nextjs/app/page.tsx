@@ -65,7 +65,7 @@ const LandingPage: NextPage = () => {
             {/* CTA Button */}
             <div className="pt-6">
               <Link
-                href="/votings"
+                href="/votes"
                 className="btn btn-primary btn-lg gap-2 shadow-2xl hover:scale-105 transition-transform"
               >
                 <svg
@@ -262,7 +262,7 @@ const LandingPage: NextPage = () => {
         <p className="text-xl opacity-70 mb-12 max-w-2xl mx-auto">
           Experience the future of private, secure, and transparent voting on the blockchain.
         </p>
-        <Link href="/votings" className="btn btn-primary btn-lg gap-2 shadow-2xl hover:scale-105 transition-transform">
+        <Link href="/votes" className="btn btn-primary btn-lg gap-2 shadow-2xl hover:scale-105 transition-transform">
           <svg
             className="w-6 h-6"
             fill="none"

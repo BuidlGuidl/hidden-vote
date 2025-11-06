@@ -123,7 +123,7 @@ const ListVotings = () => {
                 </div>
               </div>
               <div className="pt-4">
-                <Link href={`/voting/${v.voting}`} className="btn btn-sm btn-primary">
+                <Link href={`/vote/${v.voting}`} className="btn btn-sm btn-primary">
                   View
                 </Link>
               </div>

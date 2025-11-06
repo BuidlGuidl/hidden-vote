@@ -11,9 +11,9 @@ const VotingsPage: NextPage = () => {
   const [activeTab, setActiveTab] = useState<"all" | "owned" | "participated">("owned");
 
   const tabs = [
-    { id: "owned" as const, label: "My Votings" },
+    { id: "owned" as const, label: "My Votes" },
     { id: "participated" as const, label: "I Can Vote" },
-    { id: "all" as const, label: "All Votings" },
+    { id: "all" as const, label: "All Votes" },
   ];
 
   return (
@@ -52,7 +52,7 @@ const VotingsPage: NextPage = () => {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                Create Voting
+                Create Vote
               </button>
             </div>
           </div>
@@ -77,7 +77,7 @@ const VotingsPage: NextPage = () => {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                Create Voting
+                Create Vote
               </button>
             </div>
           </div>

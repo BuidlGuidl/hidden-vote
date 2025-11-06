@@ -248,7 +248,7 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
                     clipRule="evenodd"
                   />
                 </svg>
-                Voting End Time
+                Vote End Time
                 <div
                   className="tooltip tooltip-right before:!max-w-[280px] before:!rounded-none before:!text-left before:!whitespace-normal before:!p-3"
                   data-tip="Voting period ends at this time. Must be after registration deadline."

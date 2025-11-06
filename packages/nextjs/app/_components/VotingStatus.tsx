@@ -14,7 +14,7 @@ const VotingStatus = ({ votingAddress }: VotingStatusProps) => {
   });
 
   if (!votingStats) {
-    return null;
+    return <div className="h-6" />;
   }
 
   const votingStatsArray = votingStats as unknown as any[];
@@ -22,7 +22,7 @@ const VotingStatus = ({ votingAddress }: VotingStatusProps) => {
   const votingEndTime = votingStatsArray?.[4] as bigint;
 
   if (!registrationDeadline || !votingEndTime) {
-    return null;
+    return <div className="h-6" />;
   }
 
   const now = Math.floor(Date.now() / 1000);
@@ -47,7 +47,7 @@ const VotingStatus = ({ votingAddress }: VotingStatusProps) => {
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 h-6">
       {isRegistrationPhase && (
         <>
           <div className="badge badge-primary badge-sm">Registration Open</div>

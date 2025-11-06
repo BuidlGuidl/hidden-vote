@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
+import VotingStatsDisplay from "./VotingStatsDisplay";
 import VotingStatus from "./VotingStatus";
 import { useQuery } from "@tanstack/react-query";
 import { gql, request } from "graphql-request";
@@ -89,8 +90,8 @@ const ListVotings = () => {
   if (isError) {
     return (
       <div className="w-full">
-        <ul className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
-          <li className="col-span-1 md:col-span-3 alert alert-error">
+        <ul className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <li className="col-span-1 md:col-span-2 lg:col-span-3 alert alert-error">
             <span>Failed to load votes.</span>
           </li>
         </ul>
@@ -102,27 +103,26 @@ const ListVotings = () => {
     <div className="w-full">
       <ul className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {votings.length === 0 ? (
-          <li className="col-span-1 md:col-span-3 bg-base-100 rounded-xl p-6 text-center opacity-70">
+          <li className="col-span-1 md:col-span-2 lg:col-span-3 bg-base-100 rounded-xl p-6 text-center opacity-70">
             No votes created yet.
           </li>
         ) : (
           votings.map(v => (
-            <li key={v.voting} className="bg-base-100 rounded-xl p-5 border border-base-300 flex flex-col h-full">
-              <div className="flex-grow space-y-3">
-                <div className="text-lg font-medium break-words line-clamp-2 min-h-[3.5rem]">
-                  {v.question || "(no question)"}
-                </div>
+            <li key={v.voting} className="bg-base-100 rounded-xl p-5 border border-base-300 flex flex-col">
+              <div className="space-y-3 flex-1">
+                <div className="text-lg font-medium break-words line-clamp-2 h-14">{v.question || "(no question)"}</div>
                 <VotingStatus votingAddress={v.voting} />
-                <div className="text-sm opacity-70 min-h-[1.75rem] flex items-start">
+                <VotingStatsDisplay votingAddress={v.voting} />
+                <div className="text-sm opacity-70 h-7 flex items-start">
                   <span className="mr-1">Creator:</span>
                   <Address address={v.creator} size="xs" />
                 </div>
-                <div className="text-sm opacity-70 min-h-[1.75rem] flex items-start">
+                <div className="text-sm opacity-70 h-7 flex items-start">
                   <span className="mr-1">Vote:</span>
                   <Address address={v.voting} size="xs" />
                 </div>
               </div>
-              <div className="pt-4">
+              <div className="pt-4 flex-none">
                 <Link href={`/vote/${v.voting}`} className="btn btn-sm btn-primary">
                   View
                 </Link>

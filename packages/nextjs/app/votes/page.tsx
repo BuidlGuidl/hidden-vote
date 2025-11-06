@@ -61,7 +61,7 @@ const VotingsPage: NextPage = () => {
 
       <main className="relative z-10 -mt-24 lg:-mt-44 pb-8">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-          <div className="overflow-hidden min-h-48 flex items-center justify-center rounded-lg bg-white shadow dark:bg-gray-800 dark:shadow-none dark:outline dark:outline-1 dark:-outline-offset-1 dark:outline-white/10">
+          <div className="overflow-hidden min-h-48 rounded-lg bg-white shadow dark:bg-gray-800 dark:shadow-none dark:outline-1 dark:-outline-offset-1 dark:outline-white/10">
             <div className="p-6 w-full">
               <VotingOverview activeTab={activeTab} />
               <button

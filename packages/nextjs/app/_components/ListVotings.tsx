@@ -115,7 +115,7 @@ const ListVotings = () => {
 
   return (
     <div className="w-full">
-      <ul className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
+      <ul className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {votings.length === 0 ? (
           <li className="col-span-1 md:col-span-3 bg-base-100 rounded-xl p-6 text-center opacity-70">
             No votings created yet.

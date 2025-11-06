@@ -56,11 +56,11 @@ const VotingStatus = ({ votingAddress }: VotingStatusProps) => {
       )}
       {isVotingPhase && (
         <>
-          <div className="badge badge-success badge-sm">Voting Open</div>
+          <div className="badge badge-success badge-sm">Vote Open</div>
           <span className="text-xs opacity-60">{formatTimeLeft(voteEndTime - now)}</span>
         </>
       )}
-      {isVotingClosed && <div className="badge badge-error badge-sm">Voting Closed</div>}
+      {isVotingClosed && <div className="badge badge-error badge-sm">Vote Closed</div>}
     </div>
   );
 };

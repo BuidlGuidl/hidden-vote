@@ -99,7 +99,7 @@ export const VotingStats = ({ contractAddress }: { contractAddress?: `0x${string
     const tick = () => {
       const now = Date.now();
       const diff = Math.max(0, votingEndMs - now);
-      setVotingTimeLeft(format(diff, "Voting closed"));
+      setVotingTimeLeft(format(diff, "Vote closed"));
     };
 
     tick();
@@ -125,16 +125,16 @@ export const VotingStats = ({ contractAddress }: { contractAddress?: `0x${string
         {isRegistrationPhase && timeLeft && timeLeft !== "Registration closed" && (
           <span className="badge badge-primary badge-sm">Registration closes in {timeLeft}</span>
         )}
-        {isVotingPhase && votingTimeLeft && votingTimeLeft !== "Voting closed" && (
-          <span className="badge badge-success badge-sm">Voting ends in {votingTimeLeft}</span>
+        {isVotingPhase && votingTimeLeft && votingTimeLeft !== "Vote closed" && (
+          <span className="badge badge-success badge-sm">Vote ends in {votingTimeLeft}</span>
         )}
-        {isVotingClosed && <span className="badge badge-error badge-sm">Voting closed</span>}
+        {isVotingClosed && <span className="badge badge-error badge-sm">Vote closed</span>}
       </div>
       <div className="text-center">
         <h2 className="text-2xl font-bold">{q || "Loading..."}</h2>
         <div className="flex justify-center gap-10">
           <div>
-            Voting contract: <Address address={contractAddress} />
+            Vote contract: <Address address={contractAddress} />
           </div>
           <div>
             Owner: <Address address={owner as `0x${string}`} />
@@ -158,7 +158,7 @@ export const VotingStats = ({ contractAddress }: { contractAddress?: `0x${string
             )}
             {votingEndTime && (
               <div className="flex flex-col">
-                <span className="opacity-50 text-xs">Voting Closes</span>
+                <span className="opacity-50 text-xs">Vote Closes</span>
                 <span className="font-medium">
                   {new Date(Number(votingEndTime) * 1000).toLocaleString(undefined, {
                     month: "short",

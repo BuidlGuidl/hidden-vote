@@ -156,7 +156,7 @@ const ParticipatedVotings = () => {
       <div className="w-full">
         <ul className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
           <li className="col-span-1 md:col-span-3 bg-base-100 rounded-xl p-6 text-center opacity-70">
-            Connect your wallet to see votings you can participate in.
+            Connect your wallet to see votes you can participate in.
           </li>
         </ul>
       </div>
@@ -168,7 +168,7 @@ const ParticipatedVotings = () => {
       <div className="w-full">
         <ul className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
           <li className="col-span-1 md:col-span-3 alert alert-error">
-            <span>Failed to load votings.</span>
+            <span>Failed to load votes.</span>
           </li>
         </ul>
       </div>
@@ -180,7 +180,7 @@ const ParticipatedVotings = () => {
       <ul className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
         {votings.length === 0 ? (
           <li className="col-span-1 md:col-span-3 bg-base-100 rounded-xl p-6 text-center opacity-70">
-            No votings available for participation yet.
+            No votes available for participation yet.
           </li>
         ) : (
           votings.map(v => (
@@ -195,7 +195,7 @@ const ParticipatedVotings = () => {
                   <Address address={v.creator} size="xs" />
                 </div>
                 <div className="text-sm opacity-70 min-h-[1.75rem] flex items-start">
-                  <span className="mr-1">Voting:</span>
+                  <span className="mr-1">Vote:</span>
                   <Address address={v.voting} size="xs" />
                 </div>
               </div>

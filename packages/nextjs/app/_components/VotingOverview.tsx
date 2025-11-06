@@ -13,9 +13,9 @@ const VotingOverview = ({ onCreateClick }: VotingOverviewProps) => {
   const [activeTab, setActiveTab] = useState<"all" | "owned" | "participated">("owned");
 
   const tabs = [
-    { id: "owned" as const, label: "My Votings", component: OwnedVotings },
+    { id: "owned" as const, label: "My Votes", component: OwnedVotings },
     { id: "participated" as const, label: "I Can Vote", component: ParticipatedVotings },
-    { id: "all" as const, label: "All Votings", component: ListVotings },
+    { id: "all" as const, label: "All Votes", component: ListVotings },
   ];
 
   const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || ListVotings;
@@ -48,7 +48,7 @@ const VotingOverview = ({ onCreateClick }: VotingOverviewProps) => {
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          Create Voting
+          Create Vote
         </button>
       </div>
 

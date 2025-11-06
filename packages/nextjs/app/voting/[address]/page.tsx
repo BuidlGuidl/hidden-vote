@@ -194,16 +194,16 @@ export default function VotingByAddressPage() {
           Back to Home
         </Link>
         {!enabled ? (
-          <div className="mt-6 text-sm opacity-70 text-center">No voting address in URL.</div>
+          <div className="mt-6 text-sm opacity-70 text-center">No vote address in URL.</div>
         ) : (
           <div className="flex flex-col items-center w-full">
             <div className="w-full max-w-2xl space-y-4 mt-6">
               {showSwitchToBase && (
                 <div className="alert alert-warning flex items-center justify-between">
                   <span>
-                    This voting is deployed on Base, but your wallet is connected to Mainnet.
+                    This vote is deployed on Base, but your wallet is connected to Mainnet.
                     <br />
-                    Please switch to Base to interact with this voting.
+                    Please switch to Base to interact with this vote.
                   </span>
                   <button
                     type="button"
@@ -218,9 +218,9 @@ export default function VotingByAddressPage() {
               {showSwitchToMainnet && (
                 <div className="alert alert-warning flex items-center justify-between">
                   <span>
-                    This voting is deployed on Mainnet, but your wallet is connected to Base.
+                    This vote is deployed on Mainnet, but your wallet is connected to Base.
                     <br />
-                    Please switch to Mainnet to interact with this voting.
+                    Please switch to Mainnet to interact with this vote.
                   </span>
                   <button
                     type="button"

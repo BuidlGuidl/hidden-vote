@@ -106,7 +106,7 @@ const ListVotings = () => {
       <div className="w-full">
         <ul className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
           <li className="col-span-1 md:col-span-3 alert alert-error">
-            <span>Failed to load votings.</span>
+            <span>Failed to load votes.</span>
           </li>
         </ul>
       </div>
@@ -118,7 +118,7 @@ const ListVotings = () => {
       <ul className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
         {votings.length === 0 ? (
           <li className="col-span-1 md:col-span-3 bg-base-100 rounded-xl p-6 text-center opacity-70">
-            No votings created yet.
+            No votes created yet.
           </li>
         ) : (
           votings.map(v => (
@@ -133,7 +133,7 @@ const ListVotings = () => {
                   <Address address={v.creator} size="xs" />
                 </div>
                 <div className="text-sm opacity-70 min-h-[1.75rem] flex items-start">
-                  <span className="mr-1">Voting:</span>
+                  <span className="mr-1">Vote:</span>
                   <Address address={v.voting} size="xs" />
                 </div>
               </div>

@@ -12,6 +12,7 @@ import {
   TrashIcon,
   UserPlusIcon,
 } from "@heroicons/react/24/outline";
+import { Address } from "~~/components/scaffold-eth";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import { notification } from "~~/utils/scaffold-eth";
 
@@ -463,12 +464,9 @@ export const AddVotersModal = ({ contractAddress }: AddVotersModalProps) => {
                 </div>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {voters.map((voter, index) => (
-                    <div key={index} className="flex items-center gap-2 p-2 bg-base-100 rounded-lg text-sm">
+                    <div key={index} className="flex items-center gap-2 p-2 bg-base-100 rounded-lg">
                       <div className="flex-1 min-w-0">
-                        {voter.ensName && (
-                          <div className="font-medium text-sm text-primary truncate">{voter.ensName}</div>
-                        )}
-                        <span className="font-mono text-xs opacity-70 truncate block">{voter.address}</span>
+                        <Address address={voter.address as `0x${string}`} />
                       </div>
                       <button
                         onClick={() => toggleVoterStatus(index)}

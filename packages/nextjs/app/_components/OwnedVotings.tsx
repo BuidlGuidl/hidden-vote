@@ -112,7 +112,7 @@ const OwnedVotings = () => {
       <div className="w-full">
         <ul className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
           <li className="col-span-1 md:col-span-3 bg-base-100 rounded-xl p-6 text-center opacity-70">
-            Connect your wallet to see your owned votings.
+            Connect your wallet to see your created votes.
           </li>
         </ul>
       </div>
@@ -124,7 +124,7 @@ const OwnedVotings = () => {
       <div className="w-full">
         <ul className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
           <li className="col-span-1 md:col-span-3 alert alert-error">
-            <span>Failed to load your votings.</span>
+            <span>Failed to load your votes.</span>
           </li>
         </ul>
       </div>
@@ -136,7 +136,7 @@ const OwnedVotings = () => {
       <ul className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
         {votings.length === 0 ? (
           <li className="col-span-1 md:col-span-3 bg-base-100 rounded-xl p-6 text-center opacity-70">
-            You haven&apos;t created any votings yet.
+            You haven&apos;t created any votes yet.
           </li>
         ) : (
           votings.map(v => (
@@ -151,7 +151,7 @@ const OwnedVotings = () => {
                   <Address address={v.creator} size="xs" />
                 </div>
                 <div className="text-sm opacity-70 min-h-[1.75rem] flex items-start">
-                  <span className="mr-1">Voting:</span>
+                  <span className="mr-1">Vote:</span>
                   <Address address={v.voting} size="xs" />
                 </div>
               </div>

@@ -74,8 +74,12 @@ export const CombinedVoteBurnerPaymaster = ({
   const isVoter = votingDataArray?.[3] as boolean;
   const hasRegistered = votingDataArray?.[4] as boolean;
   const registrationDeadline = votingDataArray?.[5] as bigint;
+  const votingEndTime = votingDataArray?.[6] as bigint;
   const now = BigInt(nowSec);
-  const isVotingOpen = typeof registrationDeadline === "bigint" ? now > registrationDeadline : false;
+  const isVotingOpen =
+    typeof registrationDeadline === "bigint" && typeof votingEndTime === "bigint"
+      ? now > registrationDeadline && now <= votingEndTime
+      : false;
 
   const votingStatsArray = votingStats as unknown as any[];
   const options = (votingStatsArray?.[2] as string[]) || [];

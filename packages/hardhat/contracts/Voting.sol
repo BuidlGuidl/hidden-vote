@@ -9,9 +9,12 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 contract Voting is Ownable {
     using LeanIMT for LeanIMTData;
 
+    uint32 public constant ROOT_HISTORY_SIZE = 30;
+
     IVerifier public immutable i_verifier;
     string public s_question;
     uint256 public immutable i_registrationDeadline;
+    uint256 public immutable i_votingEndTime;
     string[] public s_options;
 
     // so that not 2 times the same commitment can be inserted
@@ -22,6 +25,8 @@ contract Voting is Ownable {
     mapping(address => bool) private s_hasRegistered;
 
     LeanIMTData public s_tree;
+    mapping(uint256 => bytes32) public s_roots;
+    uint32 public s_currentRootIndex;
     mapping(uint256 => uint256) public s_voteCounts; // optionIndex => count
 
     event NewLeaf(uint256 index, uint256 value);
@@ -37,17 +42,44 @@ contract Voting is Ownable {
     error Voting__RegistrationPeriodOver();
     error Voting__InvalidOptionCount();
     error Voting__InvalidOptionIndex();
+    error Voting__VotingPeriodOver();
+    error Voting__VotingEndTimeMustBeAfterRegistration();
+    error Voting__RegistrationDeadlineMustBeInFuture();
+    error Voting__VotingEndTimeMustBeInFuture();
+    error Voting__InvalidTreeRoot();
 
-    constructor(IVerifier _verifier, string memory _question, uint256 _registrationDuration, string[] memory _options)
-        Ownable(msg.sender)
-    {
+    constructor(
+        IVerifier _verifier,
+        string memory _question,
+        uint256 _registrationDeadline,
+        uint256 _votingEndTime,
+        string[] memory _options
+    ) Ownable(msg.sender) {
         if (_options.length < 2 || _options.length > 16) {
             revert Voting__InvalidOptionCount();
         }
+
+        // Validate registration deadline is in the future
+        if (_registrationDeadline <= block.timestamp) {
+            revert Voting__RegistrationDeadlineMustBeInFuture();
+        }
+
+        // Validate voting end time is in the future
+        if (_votingEndTime <= block.timestamp) {
+            revert Voting__VotingEndTimeMustBeInFuture();
+        }
+
+        // Ensure voting end time is after registration deadline
+        if (_votingEndTime <= _registrationDeadline) {
+            revert Voting__VotingEndTimeMustBeAfterRegistration();
+        }
+
         i_verifier = _verifier;
         s_question = _question;
-        i_registrationDeadline = _registrationDuration + block.timestamp;
+        i_registrationDeadline = _registrationDeadline;
+        i_votingEndTime = _votingEndTime;
         s_options = _options;
+        s_roots[0] = bytes32(s_tree.root());
     }
 
     function addVoters(address[] calldata voters, bool[] calldata statuses) public onlyOwner {
@@ -77,6 +109,9 @@ contract Voting is Ownable {
         s_commitments[_commitment] = true;
         s_hasRegistered[msg.sender] = true;
         s_tree.insert(_commitment);
+        uint32 newRootIndex = (s_currentRootIndex + 1) % ROOT_HISTORY_SIZE;
+        s_currentRootIndex = newRootIndex;
+        s_roots[newRootIndex] = bytes32(s_tree.root());
         emit NewLeaf(s_tree.size - 1, _commitment);
     }
 
@@ -84,6 +119,14 @@ contract Voting is Ownable {
         if (block.timestamp <= i_registrationDeadline) {
             revert Voting__RegistrationPeriodNotOver();
         }
+        if (block.timestamp > i_votingEndTime) {
+            revert Voting__VotingPeriodOver();
+        }
+
+        if (!isKnownRoot(_root)) {
+            revert Voting__InvalidTreeRoot();
+        }
+
         if (s_nullifierHashes[_nullifierHash]) {
             revert Voting__NullifierHashAlreadyUsed(_nullifierHash);
         }
@@ -107,6 +150,25 @@ contract Voting is Ownable {
         s_voteCounts[optionIndex]++;
 
         emit VoteCast(_nullifierHash, msg.sender, optionIndex, block.timestamp);
+    }
+
+    function isKnownRoot(bytes32 _root) public view returns (bool) {
+        if (_root == 0) {
+            return false;
+        }
+        uint32 _currentRootIndex = s_currentRootIndex;
+        uint32 i = _currentRootIndex;
+
+        do {
+            if (_root == s_roots[i]) {
+                return true;
+            }
+            if (i == 0) {
+                i = ROOT_HISTORY_SIZE;
+            }
+            i--;
+        } while (i != _currentRootIndex);
+        return false;
     }
 
     //////////////
@@ -150,20 +212,33 @@ contract Voting is Ownable {
             uint256 treeRoot,
             bool isVoterStatus,
             bool hasRegisteredStatus,
-            uint256 registrationDeadline
+            uint256 registrationDeadline,
+            uint256 votingEndTime
         )
     {
         return (
-            s_tree.size, s_tree.depth, s_tree.root(), s_voters[_voter], s_hasRegistered[_voter], i_registrationDeadline
+            s_tree.size,
+            s_tree.depth,
+            s_tree.root(),
+            s_voters[_voter],
+            s_hasRegistered[_voter],
+            i_registrationDeadline,
+            i_votingEndTime
         );
     }
 
     function getVotingStats()
         public
         view
-        returns (address contractOwner, string memory question, string[] memory options, uint256 registrationDeadline)
+        returns (
+            address contractOwner,
+            string memory question,
+            string[] memory options,
+            uint256 registrationDeadline,
+            uint256 votingEndTime
+        )
     {
-        return (owner(), s_question, s_options, i_registrationDeadline);
+        return (owner(), s_question, s_options, i_registrationDeadline, i_votingEndTime);
     }
 
     function getOptionVoteCount(uint256 optionIndex) public view returns (uint256) {

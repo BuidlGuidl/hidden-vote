@@ -6,7 +6,6 @@ import VotingStatus from "./VotingStatus";
 import { useQuery } from "@tanstack/react-query";
 import { gql, request } from "graphql-request";
 import { getAddress } from "viem";
-import { base } from "viem/chains";
 import { Address } from "~~/components/scaffold-eth";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth";
 
@@ -33,32 +32,18 @@ const ListVotings = () => {
   };
 
   const fetchVotings = async () => {
-    const isBase = targetNetwork.id === base.id;
-    const VotingsQuery = isBase
-      ? gql`
-          query BaseVotings {
-            votings: baseVotingss {
-              items {
-                address
-                creator
-                question
-                createdAtBlock
-              }
-            }
+    const VotingsQuery = gql`
+      query BaseVotings {
+        votings: baseVotingss {
+          items {
+            address
+            creator
+            question
+            createdAtBlock
           }
-        `
-      : gql`
-          query MainnetVotings {
-            votings: mainnetVotingss {
-              items {
-                address
-                creator
-                question
-                createdAtBlock
-              }
-            }
-          }
-        `;
+        }
+      }
+    `;
 
     const data = await request<NetworkVotingsData>(
       process.env.NEXT_PUBLIC_PONDER_URL || "http://localhost:42069",
@@ -106,7 +91,7 @@ const ListVotings = () => {
       <div className="w-full">
         <ul className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
           <li className="col-span-1 md:col-span-3 alert alert-error">
-            <span>Failed to load votings.</span>
+            <span>Failed to load votes.</span>
           </li>
         </ul>
       </div>
@@ -118,7 +103,7 @@ const ListVotings = () => {
       <ul className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {votings.length === 0 ? (
           <li className="col-span-1 md:col-span-3 bg-base-100 rounded-xl p-6 text-center opacity-70">
-            No votings created yet.
+            No votes created yet.
           </li>
         ) : (
           votings.map(v => (
@@ -133,7 +118,7 @@ const ListVotings = () => {
                   <Address address={v.creator} size="xs" />
                 </div>
                 <div className="text-sm opacity-70 min-h-[1.75rem] flex items-start">
-                  <span className="mr-1">Voting:</span>
+                  <span className="mr-1">Vote:</span>
                   <Address address={v.voting} size="xs" />
                 </div>
               </div>

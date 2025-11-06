@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -14,6 +14,7 @@ import { CreateCommitment } from "~~/app/voting/_components/CreateCommitment";
 import { ShowVotersModal } from "~~/app/voting/_components/ShowVotersModal";
 import { VotingStats } from "~~/app/voting/_components/VotingStats";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
+import { getStoredVoteMetadata } from "~~/utils/localStorage";
 
 interface LeavesData {
   leaves: {
@@ -88,7 +89,45 @@ export default function VotingByAddressPage() {
   });
 
   const votingDataArray = votingData as unknown as any[];
+  const isVoter = votingDataArray?.[3] as boolean;
   const hasRegistered = votingDataArray?.[4] as boolean;
+  const registrationDeadline = votingDataArray?.[5] as bigint;
+  const votingEndTime = votingDataArray?.[6] as bigint;
+
+  // Get voting stats to access options
+  const { data: votingStats } = useScaffoldReadContract({
+    contractName: "Voting",
+    functionName: "getVotingStats",
+    address: address,
+  });
+  const votingStatsArray = votingStats as unknown as any[];
+  const options = (votingStatsArray?.[2] as string[]) || [];
+
+  // Check if voting is still open
+  const now = Math.floor(Date.now() / 1000);
+  const isRegistrationOpen = registrationDeadline && now <= Number(registrationDeadline);
+  const isVotingOpen =
+    registrationDeadline && votingEndTime && now > Number(registrationDeadline) && now <= Number(votingEndTime);
+
+  // Check if user has voted (continuously check localStorage)
+  const [votedChoice, setVotedChoice] = useState<number | null>(null);
+  useEffect(() => {
+    if (address && userAddress) {
+      const checkVoteStatus = () => {
+        const voteMeta = getStoredVoteMetadata(address, userAddress);
+        if (voteMeta && voteMeta.status === "success" && typeof voteMeta.voteChoice === "number") {
+          setVotedChoice(voteMeta.voteChoice);
+        }
+      };
+
+      // Check immediately
+      checkVoteStatus();
+
+      // Check every 2 seconds to catch when user votes
+      const interval = setInterval(checkVoteStatus, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [address, userAddress]);
 
   const { data } = useQuery({
     queryKey: ["leavess", address, chain?.id],
@@ -163,7 +202,7 @@ export default function VotingByAddressPage() {
           </div>
           <div className="lg:col-span-4">
             {!enabled ? (
-              <div className="mt-6 text-sm opacity-70 text-center">No voting address in URL.</div>
+              <div className="mt-6 text-sm opacity-70 text-center">No vote address in URL.</div>
             ) : (
               <div className="flex flex-col items-center w-full">
                 <div className="w-full max-w-3xl">
@@ -171,9 +210,9 @@ export default function VotingByAddressPage() {
                     {showSwitchToBase && (
                       <div className="alert alert-warning flex items-center justify-between">
                         <span>
-                          This voting is deployed on Base, but your wallet is connected to Mainnet.
+                          This vote is deployed on Base, but your wallet is connected to Mainnet.
                           <br />
-                          Please switch to Base to interact with this voting.
+                          Please switch to Base to interact with this vote.
                         </span>
                         <button
                           type="button"
@@ -188,9 +227,9 @@ export default function VotingByAddressPage() {
                     {showSwitchToMainnet && (
                       <div className="alert alert-warning flex items-center justify-between">
                         <span>
-                          This voting is deployed on Mainnet, but your wallet is connected to Base.
+                          This vote is deployed on Mainnet, but your wallet is connected to Base.
                           <br />
-                          Please switch to Mainnet to interact with this voting.
+                          Please switch to Mainnet to interact with this vote.
                         </span>
                         <button
                           type="button"
@@ -201,18 +240,89 @@ export default function VotingByAddressPage() {
                         </button>
                       </div>
                     )}
-                    <div className="flex flex-wrap gap-2 justify-between">
-                      {address && <AddVotersModal contractAddress={address} />}
-                      <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap gap-2">
+                      {address && isRegistrationOpen && <AddVotersModal contractAddress={address} />}
+                      <div className="flex items-center gap-2 ml-auto">
                         {address && <ShowVotersModal contractAddress={address} />}
                       </div>
                     </div>
                     <VotingStats contractAddress={address} />
 
-                    {!hasRegistered && <CreateCommitment leafEvents={leavesEvents} contractAddress={address} />}
+                    {/* Show registration status or component (only during registration period) */}
+                    {isRegistrationOpen &&
+                      (hasRegistered === true ? (
+                        <div className="alert alert-info">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            className="stroke-current shrink-0 w-6 h-6"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                          <span>
+                            You have already registered for this vote. You can vote when the voting period opens.
+                          </span>
+                        </div>
+                      ) : (
+                        /* Only show registration component if user is on the allowlist and hasn't registered */
+                        isVoter === true && <CreateCommitment leafEvents={leavesEvents} contractAddress={address} />
+                      ))}
 
-                    {hasRegistered && (
-                      <CombinedVoteBurnerPaymaster contractAddress={address} leafEvents={leavesEvents} />
+                    {/* Show "Already voted" banner if user has voted */}
+                    {votedChoice !== null ? (
+                      <div className="alert alert-info">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          className="stroke-current shrink-0 w-6 h-6"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <span>
+                          Already voted with {options[votedChoice] || "Unknown"} (Option {votedChoice + 1})
+                        </span>
+                      </div>
+                    ) : (
+                      /* Only show voting component if user is on the allowlist, has registered, voting is open, and hasn't voted */
+                      isVoter === true &&
+                      hasRegistered &&
+                      isVotingOpen && (
+                        <CombinedVoteBurnerPaymaster contractAddress={address} leafEvents={leavesEvents} />
+                      )
+                    )}
+
+                    {/* Show message if user is not on the allowlist */}
+                    {userAddress && isVoter === false && (
+                      <div className="alert alert-info">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          className="stroke-current shrink-0 w-6 h-6"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <span>
+                          You are not on the allowlist for this vote. Only approved addresses can register and vote.
+                        </span>
+                      </div>
                     )}
                   </div>
                 </div>

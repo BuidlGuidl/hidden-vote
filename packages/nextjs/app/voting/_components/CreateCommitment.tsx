@@ -24,7 +24,6 @@ interface CreateCommitmentProps {
 export const CreateCommitment = ({ leafEvents = [], contractAddress }: CreateCommitmentProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isInserting, setIsInserting] = useState(false);
-  const [, setIsInserted] = useState(false);
   const { setCommitmentData, commitmentData } = useGlobalState();
 
   const { address: userAddress, isConnected } = useAccount();
@@ -54,9 +53,6 @@ export const CreateCommitment = ({ leafEvents = [], contractAddress }: CreateCom
     contractName: "Voting",
     address: contractAddress,
   });
-
-  // const { writeContractAsync } = useWriteContract();
-  // const writeTx = useTransactor();
 
   const handleGenerateCommitment = async () => {
     setIsGenerating(true);
@@ -90,7 +86,6 @@ export const CreateCommitment = ({ leafEvents = [], contractAddress }: CreateCom
               const newIndex = leafEvents.length;
               const updatedData = { ...localData, index: newIndex };
               setCommitmentData(updatedData);
-              setIsInserted(true);
 
               saveCommitmentToLocalStorage(updatedData, contractAddress, userAddress);
             }

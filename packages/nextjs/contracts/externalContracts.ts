@@ -65,7 +65,7 @@ const externalContracts = {
       deployedOnBlock: 37395118,
     },
     Voting: {
-      address: "0x23Bfa836CDDFD82340C9412a2298FAC40436b8cb",
+      address: "0x35B862B6D6B811a4E8030D88CF63f176307dD8cA",
       abi: [
         {
           inputs: [
@@ -81,7 +81,12 @@ const externalContracts = {
             },
             {
               internalType: "uint256",
-              name: "_registrationDuration",
+              name: "_registrationDeadline",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "_votingEndTime",
               type: "uint256",
             },
             {
@@ -143,6 +148,11 @@ const externalContracts = {
         },
         {
           inputs: [],
+          name: "Voting__InvalidTreeRoot",
+          type: "error",
+        },
+        {
+          inputs: [],
           name: "Voting__NotAllowedToVote",
           type: "error",
         },
@@ -159,6 +169,11 @@ const externalContracts = {
         },
         {
           inputs: [],
+          name: "Voting__RegistrationDeadlineMustBeInFuture",
+          type: "error",
+        },
+        {
+          inputs: [],
           name: "Voting__RegistrationPeriodNotOver",
           type: "error",
         },
@@ -170,6 +185,21 @@ const externalContracts = {
         {
           inputs: [],
           name: "Voting__VotersLengthMismatch",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "Voting__VotingEndTimeMustBeAfterRegistration",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "Voting__VotingEndTimeMustBeInFuture",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "Voting__VotingPeriodOver",
           type: "error",
         },
         {
@@ -253,6 +283,19 @@ const externalContracts = {
           ],
           name: "VoterAdded",
           type: "event",
+        },
+        {
+          inputs: [],
+          name: "ROOT_HISTORY_SIZE",
+          outputs: [
+            {
+              internalType: "uint32",
+              name: "",
+              type: "uint32",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
         },
         {
           inputs: [
@@ -434,6 +477,11 @@ const externalContracts = {
               name: "registrationDeadline",
               type: "uint256",
             },
+            {
+              internalType: "uint256",
+              name: "votingEndTime",
+              type: "uint256",
+            },
           ],
           stateMutability: "view",
           type: "function",
@@ -460,6 +508,11 @@ const externalContracts = {
             {
               internalType: "uint256",
               name: "registrationDeadline",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "votingEndTime",
               type: "uint256",
             },
           ],
@@ -512,6 +565,19 @@ const externalContracts = {
           type: "function",
         },
         {
+          inputs: [],
+          name: "i_votingEndTime",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
           inputs: [
             {
               internalType: "uint256",
@@ -522,6 +588,25 @@ const externalContracts = {
           name: "insert",
           outputs: [],
           stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "bytes32",
+              name: "_root",
+              type: "bytes32",
+            },
+          ],
+          name: "isKnownRoot",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "",
+              type: "bool",
+            },
+          ],
+          stateMutability: "view",
           type: "function",
         },
         {
@@ -583,6 +668,19 @@ const externalContracts = {
           type: "function",
         },
         {
+          inputs: [],
+          name: "s_currentRootIndex",
+          outputs: [
+            {
+              internalType: "uint32",
+              name: "",
+              type: "uint32",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
           inputs: [
             {
               internalType: "bytes32",
@@ -628,6 +726,25 @@ const externalContracts = {
               internalType: "string",
               name: "",
               type: "string",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "s_roots",
+          outputs: [
+            {
+              internalType: "bytes32",
+              name: "",
+              type: "bytes32",
             },
           ],
           stateMutability: "view",
@@ -722,10 +839,10 @@ const externalContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
       },
-      deployedOnBlock: 37395177,
+      deployedOnBlock: 37829801,
     },
     VotingFactory: {
-      address: "0x678043eD0f934dC07F2ed5BB7B29F49bda091f0a",
+      address: "0x833F0e4b015fd9614f4fC30067D3396afe692C05",
       abi: [
         {
           inputs: [
@@ -791,7 +908,12 @@ const externalContracts = {
             },
             {
               internalType: "uint256",
-              name: "_registrationDuration",
+              name: "_registrationDeadline",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "_votingEndTime",
               type: "uint256",
             },
             {
@@ -845,7 +967,7 @@ const externalContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 37395175,
+      deployedOnBlock: 37829798,
     },
   },
 } as const;

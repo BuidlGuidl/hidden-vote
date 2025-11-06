@@ -6,7 +6,6 @@ import VotingStatus from "./VotingStatus";
 import { useQuery } from "@tanstack/react-query";
 import { gql, request } from "graphql-request";
 import { getAddress } from "viem";
-import { base } from "viem/chains";
 import { Address } from "~~/components/scaffold-eth";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth";
 
@@ -33,32 +32,18 @@ const ListVotings = () => {
   };
 
   const fetchVotings = async () => {
-    const isBase = targetNetwork.id === base.id;
-    const VotingsQuery = isBase
-      ? gql`
-          query BaseVotings {
-            votings: baseVotingss {
-              items {
-                address
-                creator
-                question
-                createdAtBlock
-              }
-            }
+    const VotingsQuery = gql`
+      query BaseVotings {
+        votings: baseVotingss {
+          items {
+            address
+            creator
+            question
+            createdAtBlock
           }
-        `
-      : gql`
-          query MainnetVotings {
-            votings: mainnetVotingss {
-              items {
-                address
-                creator
-                question
-                createdAtBlock
-              }
-            }
-          }
-        `;
+        }
+      }
+    `;
 
     const data = await request<NetworkVotingsData>(
       process.env.NEXT_PUBLIC_PONDER_URL || "http://localhost:42069",

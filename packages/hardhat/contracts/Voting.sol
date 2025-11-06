@@ -9,6 +9,8 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 contract Voting is Ownable {
     using LeanIMT for LeanIMTData;
 
+    uint32 public constant ROOT_HISTORY_SIZE = 30;
+
     IVerifier public immutable i_verifier;
     string public s_question;
     uint256 public immutable i_registrationDeadline;
@@ -23,6 +25,8 @@ contract Voting is Ownable {
     mapping(address => bool) private s_hasRegistered;
 
     LeanIMTData public s_tree;
+    mapping(uint256 => bytes32) public s_roots;
+    uint32 public s_currentRootIndex;
     mapping(uint256 => uint256) public s_voteCounts; // optionIndex => count
 
     event NewLeaf(uint256 index, uint256 value);
@@ -42,6 +46,7 @@ contract Voting is Ownable {
     error Voting__VotingEndTimeMustBeAfterRegistration();
     error Voting__RegistrationDeadlineMustBeInFuture();
     error Voting__VotingEndTimeMustBeInFuture();
+    error Voting__InvalidTreeRoot();
 
     constructor(
         IVerifier _verifier,
@@ -74,6 +79,7 @@ contract Voting is Ownable {
         i_registrationDeadline = _registrationDeadline;
         i_votingEndTime = _votingEndTime;
         s_options = _options;
+        s_roots[0] = bytes32(s_tree.root());
     }
 
     function addVoters(address[] calldata voters, bool[] calldata statuses) public onlyOwner {
@@ -103,6 +109,9 @@ contract Voting is Ownable {
         s_commitments[_commitment] = true;
         s_hasRegistered[msg.sender] = true;
         s_tree.insert(_commitment);
+        uint32 newRootIndex = (s_currentRootIndex + 1) % ROOT_HISTORY_SIZE;
+        s_currentRootIndex = newRootIndex;
+        s_roots[newRootIndex] = bytes32(s_tree.root());
         emit NewLeaf(s_tree.size - 1, _commitment);
     }
 
@@ -113,6 +122,11 @@ contract Voting is Ownable {
         if (block.timestamp > i_votingEndTime) {
             revert Voting__VotingPeriodOver();
         }
+
+        if (!isKnownRoot(_root)) {
+            revert Voting__InvalidTreeRoot();
+        }
+
         if (s_nullifierHashes[_nullifierHash]) {
             revert Voting__NullifierHashAlreadyUsed(_nullifierHash);
         }
@@ -136,6 +150,25 @@ contract Voting is Ownable {
         s_voteCounts[optionIndex]++;
 
         emit VoteCast(_nullifierHash, msg.sender, optionIndex, block.timestamp);
+    }
+
+    function isKnownRoot(bytes32 _root) public view returns (bool) {
+        if (_root == 0) {
+            return false;
+        }
+        uint32 _currentRootIndex = s_currentRootIndex;
+        uint32 i = _currentRootIndex;
+
+        do {
+            if (_root == s_roots[i]) {
+                return true;
+            }
+            if (i == 0) {
+                i = ROOT_HISTORY_SIZE;
+            }
+            i--;
+        } while (i != _currentRootIndex);
+        return false;
     }
 
     //////////////

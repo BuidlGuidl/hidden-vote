@@ -10,7 +10,6 @@ const VotingsPage: NextPage = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Main Content */}
       <div className="max-w-6xl mx-auto px-8 py-12">
         <VotingOverview onCreateClick={() => setIsModalOpen(true)} />
       </div>

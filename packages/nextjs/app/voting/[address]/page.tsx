@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -13,6 +13,7 @@ import { CreateCommitment } from "~~/app/voting/_components/CreateCommitment";
 import { ShowVotersModal } from "~~/app/voting/_components/ShowVotersModal";
 import { VotingStats } from "~~/app/voting/_components/VotingStats";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
+import { getStoredVoteMetadata } from "~~/utils/localStorage";
 
 interface LeavesData {
   leaves: {
@@ -92,11 +93,32 @@ export default function VotingByAddressPage() {
   const registrationDeadline = votingDataArray?.[5] as bigint;
   const votingEndTime = votingDataArray?.[6] as bigint;
 
+  // Get voting stats to access options
+  const { data: votingStats } = useScaffoldReadContract({
+    contractName: "Voting",
+    functionName: "getVotingStats",
+    address: address,
+  });
+  const votingStatsArray = votingStats as unknown as any[];
+  const options = (votingStatsArray?.[2] as string[]) || [];
+
   // Check if voting is still open
   const now = Math.floor(Date.now() / 1000);
   const isRegistrationOpen = registrationDeadline && now <= Number(registrationDeadline);
   const isVotingOpen =
     registrationDeadline && votingEndTime && now > Number(registrationDeadline) && now <= Number(votingEndTime);
+  const isVotingClosed = votingEndTime && now > Number(votingEndTime);
+
+  // Check if user has voted (for showing banner after voting closes)
+  const [votedChoice, setVotedChoice] = useState<number | null>(null);
+  useEffect(() => {
+    if (address && userAddress) {
+      const voteMeta = getStoredVoteMetadata(address, userAddress);
+      if (voteMeta && voteMeta.status === "success" && typeof voteMeta.voteChoice === "number") {
+        setVotedChoice(voteMeta.voteChoice);
+      }
+    }
+  }, [address, userAddress]);
 
   const { data } = useQuery({
     queryKey: ["leavess", address, chain?.id],
@@ -217,6 +239,28 @@ export default function VotingByAddressPage() {
               {/* Only show voting component if user is on the allowlist, has registered, and voting is still open */}
               {isVoter === true && hasRegistered && isVotingOpen && (
                 <CombinedVoteBurnerPaymaster contractAddress={address} leafEvents={leavesEvents} />
+              )}
+
+              {/* Show "Already voted" banner when voting is closed and user has voted */}
+              {isVotingClosed && votedChoice !== null && (
+                <div className="alert alert-info">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    className="stroke-current shrink-0 w-6 h-6"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <span>
+                    Already voted with Option {votedChoice + 1} ({options[votedChoice] || "Unknown"})
+                  </span>
+                </div>
               )}
 
               {/* Show message if user is not on the allowlist */}

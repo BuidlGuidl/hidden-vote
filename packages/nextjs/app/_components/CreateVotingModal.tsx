@@ -47,11 +47,23 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
 
   // Check if times are valid
   const isValidTime = useMemo(() => {
-    if (!registrationDeadline || !votingEndTime) return false;
+    if (!registrationDeadline || !votingEndTime) {
+      console.log("Missing times:", { registrationDeadline, votingEndTime });
+      return false;
+    }
     const now = Date.now();
     const regTime = new Date(registrationDeadline).getTime();
     const voteTime = new Date(votingEndTime).getTime();
-    return regTime > now && voteTime > regTime;
+    const isValid = regTime > now && voteTime > regTime;
+    console.log("Time validation:", {
+      now: new Date(now).toLocaleString(),
+      registrationDeadline: new Date(regTime).toLocaleString(),
+      votingEndTime: new Date(voteTime).toLocaleString(),
+      regInFuture: regTime > now,
+      voteAfterReg: voteTime > regTime,
+      isValid,
+    });
+    return isValid;
   }, [registrationDeadline, votingEndTime]);
 
   // Auto-clear voting end time if registration deadline is changed to be after it

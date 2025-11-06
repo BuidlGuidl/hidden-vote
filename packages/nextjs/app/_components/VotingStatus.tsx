@@ -7,23 +7,35 @@ type VotingStatusProps = {
 };
 
 const VotingStatus = ({ votingAddress }: VotingStatusProps) => {
-  const { data: registrationDeadline } = useScaffoldReadContract({
+  const { data: votingStats } = useScaffoldReadContract({
     contractName: "Voting",
-    functionName: "i_registrationDeadline",
+    functionName: "getVotingStats",
     address: votingAddress,
   });
 
-  if (!registrationDeadline) {
+  if (!votingStats) {
+    return null;
+  }
+
+  const votingStatsArray = votingStats as unknown as any[];
+  const registrationDeadline = votingStatsArray?.[3] as bigint;
+  const votingEndTime = votingStatsArray?.[4] as bigint;
+
+  if (!registrationDeadline || !votingEndTime) {
     return null;
   }
 
   const now = Math.floor(Date.now() / 1000);
-  const deadline = Number(registrationDeadline);
-  const isOpen = now < deadline;
-  const timeLeft = deadline - now;
+  const regDeadline = Number(registrationDeadline);
+  const voteEndTime = Number(votingEndTime);
+
+  // Determine which phase we're in
+  const isRegistrationPhase = now < regDeadline;
+  const isVotingPhase = now >= regDeadline && now < voteEndTime;
+  const isVotingClosed = now >= voteEndTime;
 
   const formatTimeLeft = (seconds: number) => {
-    if (seconds <= 0) return "Closed";
+    if (seconds <= 0) return "";
 
     const days = Math.floor(seconds / 86400);
     const hours = Math.floor((seconds % 86400) / 3600);
@@ -36,10 +48,19 @@ const VotingStatus = ({ votingAddress }: VotingStatusProps) => {
 
   return (
     <div className="flex items-center gap-2">
-      <div className={`badge ${isOpen ? "badge-success" : "badge-warning"} badge-sm`}>
-        {isOpen ? "Registration Open" : "Registration Closed"}
-      </div>
-      {isOpen && <span className="text-xs opacity-60">{formatTimeLeft(timeLeft)}</span>}
+      {isRegistrationPhase && (
+        <>
+          <div className="badge badge-primary badge-sm">Registration Open</div>
+          <span className="text-xs opacity-60">{formatTimeLeft(regDeadline - now)}</span>
+        </>
+      )}
+      {isVotingPhase && (
+        <>
+          <div className="badge badge-success badge-sm">Voting Open</div>
+          <span className="text-xs opacity-60">{formatTimeLeft(voteEndTime - now)}</span>
+        </>
+      )}
+      {isVotingClosed && <div className="badge badge-error badge-sm">Voting Closed</div>}
     </div>
   );
 };

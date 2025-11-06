@@ -390,31 +390,6 @@ export const CombinedVoteBurnerPaymaster = ({
     }
   };
 
-  // If user has already voted, only show the banner
-  if (voteStatus === "success" && typeof voteMeta?.voteChoice === "number") {
-    return (
-      <div className="alert alert-info">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          className="stroke-current shrink-0 w-6 h-6"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-        <span>
-          Already voted with Option {voteMeta.voteChoice + 1} ({options[voteMeta.voteChoice] || "Unknown"})
-        </span>
-      </div>
-    );
-  }
-
-  // Show full voting interface if user hasn't voted yet
   return (
     <div className="bg-base-100 shadow rounded-xl p-6 space-y-6 relative">
       <div className="flex justify-end">

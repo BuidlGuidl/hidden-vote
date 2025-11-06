@@ -107,16 +107,24 @@ export default function VotingByAddressPage() {
   const isRegistrationOpen = registrationDeadline && now <= Number(registrationDeadline);
   const isVotingOpen =
     registrationDeadline && votingEndTime && now > Number(registrationDeadline) && now <= Number(votingEndTime);
-  const isVotingClosed = votingEndTime && now > Number(votingEndTime);
 
-  // Check if user has voted (for showing banner after voting closes)
+  // Check if user has voted (continuously check localStorage)
   const [votedChoice, setVotedChoice] = useState<number | null>(null);
   useEffect(() => {
     if (address && userAddress) {
-      const voteMeta = getStoredVoteMetadata(address, userAddress);
-      if (voteMeta && voteMeta.status === "success" && typeof voteMeta.voteChoice === "number") {
-        setVotedChoice(voteMeta.voteChoice);
-      }
+      const checkVoteStatus = () => {
+        const voteMeta = getStoredVoteMetadata(address, userAddress);
+        if (voteMeta && voteMeta.status === "success" && typeof voteMeta.voteChoice === "number") {
+          setVotedChoice(voteMeta.voteChoice);
+        }
+      };
+
+      // Check immediately
+      checkVoteStatus();
+
+      // Check every 2 seconds to catch when user votes
+      const interval = setInterval(checkVoteStatus, 2000);
+      return () => clearInterval(interval);
     }
   }, [address, userAddress]);
 
@@ -231,18 +239,32 @@ export default function VotingByAddressPage() {
               </div>
               <VotingStats contractAddress={address} />
 
-              {/* Only show registration component if user is on the allowlist and hasn't registered */}
-              {isVoter === true && !hasRegistered && isRegistrationOpen && (
-                <CreateCommitment leafEvents={leavesEvents} contractAddress={address} />
-              )}
+              {/* Show registration status or component (only during registration period) */}
+              {isRegistrationOpen &&
+                (hasRegistered === true ? (
+                  <div className="alert alert-info">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      className="stroke-current shrink-0 w-6 h-6"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <span>You have already registered for this vote. You can vote when the voting period opens.</span>
+                  </div>
+                ) : (
+                  /* Only show registration component if user is on the allowlist and hasn't registered */
+                  isVoter === true && <CreateCommitment leafEvents={leavesEvents} contractAddress={address} />
+                ))}
 
-              {/* Only show voting component if user is on the allowlist, has registered, and voting is still open */}
-              {isVoter === true && hasRegistered && isVotingOpen && (
-                <CombinedVoteBurnerPaymaster contractAddress={address} leafEvents={leavesEvents} />
-              )}
-
-              {/* Show "Already voted" banner when voting is closed and user has voted */}
-              {isVotingClosed && votedChoice !== null && (
+              {/* Show "Already voted" banner if user has voted */}
+              {votedChoice !== null ? (
                 <div className="alert alert-info">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -258,9 +280,14 @@ export default function VotingByAddressPage() {
                     />
                   </svg>
                   <span>
-                    Already voted with Option {votedChoice + 1} ({options[votedChoice] || "Unknown"})
+                    Already voted with {options[votedChoice] || "Unknown"} (Option {votedChoice + 1})
                   </span>
                 </div>
+              ) : (
+                /* Only show voting component if user is on the allowlist, has registered, voting is open, and hasn't voted */
+                isVoter === true &&
+                hasRegistered &&
+                isVotingOpen && <CombinedVoteBurnerPaymaster contractAddress={address} leafEvents={leavesEvents} />
               )}
 
               {/* Show message if user is not on the allowlist */}

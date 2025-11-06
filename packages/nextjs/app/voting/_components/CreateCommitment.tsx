@@ -24,7 +24,6 @@ interface CreateCommitmentProps {
 export const CreateCommitment = ({ leafEvents = [], contractAddress }: CreateCommitmentProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isInserting, setIsInserting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const { setCommitmentData, commitmentData } = useGlobalState();
 
   const { address: userAddress, isConnected } = useAccount();
@@ -54,9 +53,6 @@ export const CreateCommitment = ({ leafEvents = [], contractAddress }: CreateCom
     contractName: "Voting",
     address: contractAddress,
   });
-
-  // const { writeContractAsync } = useWriteContract();
-  // const writeTx = useTransactor();
 
   const handleGenerateCommitment = async () => {
     setIsGenerating(true);
@@ -90,12 +86,8 @@ export const CreateCommitment = ({ leafEvents = [], contractAddress }: CreateCom
               const newIndex = leafEvents.length;
               const updatedData = { ...localData, index: newIndex };
               setCommitmentData(updatedData);
-              setShowSuccess(true);
 
               saveCommitmentToLocalStorage(updatedData, contractAddress, userAddress);
-
-              // Hide success message after 10 seconds
-              setTimeout(() => setShowSuccess(false), 10000);
             }
           },
         },
@@ -117,25 +109,6 @@ export const CreateCommitment = ({ leafEvents = [], contractAddress }: CreateCom
       <div className="space-y-1 text-center">
         <h2 className="text-2xl font-bold">Register for this vote</h2>
       </div>
-
-      {showSuccess && (
-        <div className="alert alert-success">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="stroke-current shrink-0 h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <span>Registration successful! You can now vote when the voting period opens.</span>
-        </div>
-      )}
 
       <div className="flex flex-col gap-3">
         <button

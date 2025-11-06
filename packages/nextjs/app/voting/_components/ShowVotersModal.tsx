@@ -3,8 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { gql, request } from "graphql-request";
-import { base } from "viem/chains";
-import { useAccount } from "wagmi";
 import { EyeIcon, UsersIcon } from "@heroicons/react/24/outline";
 import { Address } from "~~/components/scaffold-eth";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
@@ -16,50 +14,39 @@ type ShowVotersModalProps = {
 type VoterRow = { votingAddress: string; voter: string };
 type NetworkVotersData = { voters: { items: VoterRow[] } };
 
-async function fetchVoters(votingAddress: string, isBase: boolean) {
+async function fetchVoters(votingAddress: string) {
   const endpoint = process.env.NEXT_PUBLIC_PONDER_URL || "http://localhost:42069";
-  const VotersQuery = isBase
-    ? gql`
-        query BaseVoters {
-          voters: baseVoterss {
-            items {
-              voter
-              votingAddress
-            }
-          }
+  const VotersQuery = gql`
+    query BaseVoters {
+      voters: baseVoterss {
+        items {
+          voter
+          votingAddress
         }
-      `
-    : gql`
-        query MainnetVoters {
-          voters: mainnetVoterss {
-            items {
-              voter
-              votingAddress
-            }
-          }
-        }
-      `;
+      }
+    }
+  `;
   const data = await request<NetworkVotersData>(endpoint, VotersQuery);
   const items = data?.voters?.items ?? [];
   return items.filter(row => row.votingAddress?.toLowerCase() === votingAddress.toLowerCase());
 }
 
 export const ShowVotersModal = ({ contractAddress }: ShowVotersModalProps) => {
-  const { chain } = useAccount();
-  const isBase = chain?.id === base.id;
   const [allowedVoters, setAllowedVoters] = useState<string[]>([]);
 
-  // Fetch all voters using GraphQL query
+  // Fetch all voters using GraphQL query - always from Base network
   const {
     data: voterData,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["voters", contractAddress, chain?.id],
-    queryFn: () => fetchVoters(contractAddress, Boolean(isBase)),
+    queryKey: ["voters", contractAddress],
+    queryFn: () => fetchVoters(contractAddress),
     enabled: Boolean(contractAddress && contractAddress.length === 42),
     // light polling so UI picks up new voters soon after indexer writes them
     refetchInterval: 2000,
+    // Don't retry on errors to avoid spamming
+    retry: false,
   });
 
   // Get unique voter addresses from the data
@@ -184,7 +171,7 @@ export const ShowVotersModal = ({ contractAddress }: ShowVotersModalProps) => {
                 <span className="ml-2">Loading voters...</span>
               </div>
             ) : error ? (
-              <div className="alert alert-error">
+              <div className="alert alert-warning">
                 <span>Error loading voters: {error.message}</span>
               </div>
             ) : allowedVoters.length === 0 ? (

@@ -65,7 +65,7 @@ const externalContracts = {
       deployedOnBlock: 37395118,
     },
     Voting: {
-      address: "0x0A5339A5152830B8f1a1E1f193223c1B949D7Ff4",
+      address: "0x35B862B6D6B811a4E8030D88CF63f176307dD8cA",
       abi: [
         {
           inputs: [
@@ -144,6 +144,11 @@ const externalContracts = {
         {
           inputs: [],
           name: "Voting__InvalidProof",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "Voting__InvalidTreeRoot",
           type: "error",
         },
         {
@@ -278,6 +283,19 @@ const externalContracts = {
           ],
           name: "VoterAdded",
           type: "event",
+        },
+        {
+          inputs: [],
+          name: "ROOT_HISTORY_SIZE",
+          outputs: [
+            {
+              internalType: "uint32",
+              name: "",
+              type: "uint32",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
         },
         {
           inputs: [
@@ -575,6 +593,25 @@ const externalContracts = {
         {
           inputs: [
             {
+              internalType: "bytes32",
+              name: "_root",
+              type: "bytes32",
+            },
+          ],
+          name: "isKnownRoot",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "",
+              type: "bool",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
               internalType: "address",
               name: "_voter",
               type: "address",
@@ -631,6 +668,19 @@ const externalContracts = {
           type: "function",
         },
         {
+          inputs: [],
+          name: "s_currentRootIndex",
+          outputs: [
+            {
+              internalType: "uint32",
+              name: "",
+              type: "uint32",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
           inputs: [
             {
               internalType: "bytes32",
@@ -676,6 +726,25 @@ const externalContracts = {
               internalType: "string",
               name: "",
               type: "string",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "s_roots",
+          outputs: [
+            {
+              internalType: "bytes32",
+              name: "",
+              type: "bytes32",
             },
           ],
           stateMutability: "view",
@@ -770,10 +839,10 @@ const externalContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
       },
-      deployedOnBlock: 37739994,
+      deployedOnBlock: 37829801,
     },
     VotingFactory: {
-      address: "0xdc3DF21ba851480A5A520482A2B3d3acf945BBD7",
+      address: "0x833F0e4b015fd9614f4fC30067D3396afe692C05",
       abi: [
         {
           inputs: [
@@ -898,7 +967,7 @@ const externalContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 37739884,
+      deployedOnBlock: 37829798,
     },
   },
 } as const;

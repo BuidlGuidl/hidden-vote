@@ -114,13 +114,34 @@ export const ShowVotersModal = ({ contractAddress }: ShowVotersModalProps) => {
         <div className="flex-1">
           <Address address={userAddress as `0x${string}`} />
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1">
-            <span className="text-xs opacity-70">Registered:</span>
-            <span className={`badge badge-sm ${hasRegistered ? "badge-info" : "badge-ghost"}`}>
-              {hasRegistered ? "Yes" : "No"}
-            </span>
-          </div>
+        <div className="flex items-center justify-center w-24">
+          {hasRegistered ? (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 text-success"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clipRule="evenodd"
+              />
+            </svg>
+          ) : (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 text-error"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
+            </svg>
+          )}
         </div>
       </div>
     );
@@ -181,17 +202,19 @@ export const ShowVotersModal = ({ contractAddress }: ShowVotersModalProps) => {
               </div>
             ) : (
               <div className="space-y-3 max-h-96 overflow-y-auto">
-                <div className="text-sm font-medium opacity-80 pb-2 border-b border-base-300">Voter Addresses</div>
-                {allowedVoters.map((voterAddress, index) => (
-                  <VoterDisplay key={`${voterAddress}-${index}`} userAddress={voterAddress} />
-                ))}
+                <div className="flex items-center justify-between pb-2 border-b border-base-300">
+                  <div className="flex-1 text-sm font-medium opacity-80">Voter Address</div>
+                  <div className="w-24 text-center text-sm font-medium opacity-80">Registered</div>
+                </div>
+                <div className="space-y-2">
+                  {allowedVoters.map((voterAddress, index) => (
+                    <VoterDisplay key={`${voterAddress}-${index}`} userAddress={voterAddress} />
+                  ))}
+                </div>
               </div>
             )}
 
-            <div className="flex justify-between items-center pt-4 border-t border-base-300">
-              <div className="text-xs opacity-70">
-                • <span className="text-info">Registered</span>: Has submitted their commitment
-              </div>
+            <div className="flex justify-end items-center pt-4 border-t border-base-300">
               <label htmlFor="show-voters-modal" className="btn btn-primary btn-sm">
                 Close
               </label>

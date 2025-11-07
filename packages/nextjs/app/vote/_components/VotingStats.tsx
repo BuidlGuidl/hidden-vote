@@ -132,12 +132,14 @@ export const VotingStats = ({ contractAddress }: { contractAddress?: `0x${string
       </div>
       <div className="text-center">
         <h2 className="text-2xl font-bold">{q || "Loading..."}</h2>
-        <div className="flex justify-center gap-10">
-          <div>
-            Vote contract: <Address address={contractAddress} />
+        <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-10 mt-2">
+          <div className="flex flex-col sm:flex-row items-center gap-1">
+            <span className="text-sm opacity-70">Vote contract:</span>
+            <Address address={contractAddress} />
           </div>
-          <div>
-            Owner: <Address address={owner as `0x${string}`} />
+          <div className="flex flex-col sm:flex-row items-center gap-1">
+            <span className="text-sm opacity-70">Owner:</span>
+            <Address address={owner as `0x${string}`} />
           </div>
         </div>
 

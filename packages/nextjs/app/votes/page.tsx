@@ -16,14 +16,32 @@ const VotingsPage: NextPage = () => {
     { id: "all" as const, label: "All Votes" },
   ];
 
+  const createVoteButton = (
+    <button
+      className="btn btn-accent btn-outline whitespace-nowrap w-full sm:w-auto"
+      onClick={() => setIsModalOpen(true)}
+    >
+      <svg
+        className="inline-block w-5 h-5 mr-1"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+      </svg>
+      Create Vote
+    </button>
+  );
+
   return (
     <div className="min-h-full">
       <AccentWrapper>
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-          <div className="relative w-full flex items-center py-5 lg:pt-12">
-            {/* Right section */}
+          <div className="relative w-full py-5 lg:pt-12">
+            <div className="sm:hidden mb-3">{createVoteButton}</div>
+
             <div className="w-full flex items-center justify-between gap-4 overflow-x-auto sm:overflow-visible py-2">
-              {/* Tab Navigation */}
               <nav className="flex space-x-4">
                 {tabs.map(tab => (
                   <button
@@ -38,22 +56,7 @@ const VotingsPage: NextPage = () => {
                 ))}
               </nav>
 
-              {/* Create Button */}
-              <button
-                className="hidden sm:block btn btn-accent btn-outline whitespace-nowrap"
-                onClick={() => setIsModalOpen(true)}
-              >
-                <svg
-                  className="inline-block w-5 h-5 mr-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Create Vote
-              </button>
+              <div className="hidden sm:block">{createVoteButton}</div>
             </div>
           </div>
         </div>
@@ -64,21 +67,6 @@ const VotingsPage: NextPage = () => {
           <div className="overflow-hidden min-h-48 rounded-lg bg-white shadow dark:bg-gray-800 dark:shadow-none dark:outline-1 dark:-outline-offset-1 dark:outline-white/10">
             <div className="p-6 w-full">
               <VotingOverview activeTab={activeTab} />
-              <button
-                className="sm:hidden mt-6 btn btn-primary btn-outline whitespace-nowrap"
-                onClick={() => setIsModalOpen(true)}
-              >
-                <svg
-                  className="inline-block w-5 h-5 mr-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Create Vote
-              </button>
             </div>
           </div>
         </div>

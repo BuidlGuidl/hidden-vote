@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { InformationCircleIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
@@ -138,8 +139,25 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center animate-in fade-in duration-200">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
 
-      <div className="relative bg-base-100 rounded-2xl border border-base-300 p-8 max-w-lg w-full mx-4 shadow-2xl animate-in zoom-in-95 duration-200">
-        <div className="flex items-start justify-between mb-6">
+      <div className="relative bg-base-100 rounded-2xl border border-base-300 py-8 max-w-lg w-full mx-4 shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden">
+        <Image className="absolute -top-48 right-0" src="/blur-cyan.png" alt="" width={530} height={530} />
+        <Image
+          className="absolute -bottom-48 -left-32"
+          src="/blur-cyan.png"
+          alt=""
+          width={530}
+          height={530}
+          unoptimized
+        />
+        <Image
+          className="absolute top-0 -right-32"
+          src="/blur-indigo.png"
+          alt=""
+          width={567}
+          height={567}
+          unoptimized
+        />
+        <div className="relative flex items-start justify-between mb-6 px-8">
           <div>
             <h2 className="text-2xl font-bold mb-1">Create New Vote</h2>
           </div>
@@ -159,13 +177,13 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
           </button>
         </div>
 
-        <div className="space-y-6">
-          <div className="form-control w-full">
+        <div className="relative space-y-4">
+          <div className="form-control w-full bg-base-100/50 py-4 px-8">
             <label className="label mb-2">
-              <span className="label-text font-semibold text-base flex items-center gap-2">
+              <span className="text-base-content font-semibold text-base flex items-center gap-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-primary"
+                  className="h-5 w-5 text-primary/50"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -180,7 +198,7 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
             </label>
             <input
               type="text"
-              className="input input-bordered input-lg w-full focus:input-primary transition-colors"
+              className="input input-bordered input-md w-full focus:input-primary transition-colors"
               placeholder="e.g., Should we implement feature X?"
               value={question}
               onChange={e => setQuestion(e.target.value)}
@@ -193,12 +211,12 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
             />
           </div>
 
-          <div className="form-control w-full">
+          <div className="form-control w-full bg-base-100/50 py-4 px-8">
             <label className="label mb-2">
-              <span className="label-text font-semibold text-base flex items-center gap-2">
+              <span className="text-base-content font-semibold text-base flex items-center gap-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-primary"
+                  className="h-5 w-5 text-primary/50"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -219,7 +237,7 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
             </label>
             <input
               type="datetime-local"
-              className="input input-bordered input-lg w-full focus:input-primary transition-colors"
+              className="input input-bordered input-md w-full focus:input-primary transition-colors"
               value={registrationDeadline}
               min={minDateTime}
               onChange={e => setRegistrationDeadline(e.target.value)}
@@ -233,12 +251,12 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
             )}
           </div>
 
-          <div className="form-control w-full">
+          <div className="form-control w-full bg-base-100/50 py-4 px-8">
             <label className="label mb-2">
-              <span className="label-text font-semibold text-base flex items-center gap-2">
+              <span className="text-base-content font-semibold text-base flex items-center gap-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-primary"
+                  className="h-5 w-5 text-primary/50"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -259,7 +277,7 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
             </label>
             <input
               type="datetime-local"
-              className="input input-bordered input-lg w-full focus:input-primary transition-colors"
+              className="input input-bordered input-md w-full focus:input-primary transition-colors"
               value={votingEndTime}
               min={minVotingEndTime}
               onChange={e => setVotingEndTime(e.target.value)}
@@ -267,7 +285,7 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
             />
             {!registrationDeadline && (
               <div className="text-center mt-2">
-                <span className="label-text-alt text-warning">Please set registration deadline first</span>
+                <span className="text-warning">Please set registration deadline first</span>
               </div>
             )}
             {votingEndTime && (
@@ -279,12 +297,12 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
             )}
           </div>
 
-          <div className="form-control w-full">
+          <div className="form-control w-full bg-base-100/50 py-4 px-8">
             <label className="label mb-2">
-              <span className="label-text font-semibold text-base flex items-center gap-2">
+              <span className="text-base-content font-semibold text-base flex items-center gap-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-primary"
+                  className="h-5 w-5 text-primary/50"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -298,7 +316,7 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
                 Vote Options ({options.length}/16)
               </span>
             </label>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
+            <div className="space-y-2 max-h-64 overflow-y-auto py-2 pr-2">
               {options.map((option, index) => (
                 <div key={index} className="flex gap-2">
                   <span className="flex items-center justify-center w-8 text-sm opacity-70">{index + 1}.</span>
@@ -322,18 +340,20 @@ const CreateVotingModal = ({ isOpen, onClose }: CreateVotingModalProps) => {
               ))}
             </div>
             {options.length < 16 && (
-              <button
-                onClick={addOption}
-                className="btn btn-sm btn-outline btn-primary w-full mt-3 gap-2 text-sm"
-                disabled={isMining}
-              >
-                <PlusIcon className="h-5 w-5" />
-                Add Another Option
-              </button>
+              <div className="flex">
+                <button
+                  onClick={addOption}
+                  className="btn btn-sm btn-outline btn-primary mt-3 gap-2 ml-auto"
+                  disabled={isMining}
+                >
+                  <PlusIcon className="h-5 w-5" />
+                  Add Another Option
+                </button>
+              </div>
             )}
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex justify-end gap-3 pt-2 px-8">
             <button className="btn btn-ghost btn-lg" onClick={handleClose} disabled={isMining}>
               Cancel
             </button>
